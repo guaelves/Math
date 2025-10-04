@@ -2,33 +2,37 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>99乘法表互動遊戲</title>
+<title>九九乘法表互動遊戲</title>
 <style>
   body {
     font-family: "Microsoft JhengHei", sans-serif;
     display: flex;
     justify-content: center;
-    align-items: center;
     margin-top: 20px;
   }
   table {
     border-collapse: collapse;
   }
-  td {
-    width: 60px;
-    height: 60px;
+  td, th {
+    width: 10vw;       /* 根據螢幕寬度自動調整格子大小 */
+    height: 10vw;
     border: 1px solid #ccc;
     text-align: center;
     vertical-align: middle;
-    font-size: 18px;
+    font-size: clamp(16px, 2.5vw, 36px); /* 文字大小動態調整 */
     position: relative;
+    cursor: pointer;
+  }
+  th {
+    background-color: #f0f0f0;
+    font-weight: bold;
   }
   input {
     width: 100%;
     height: 100%;
     border: none;
     text-align: center;
-    font-size: 18px;
+    font-size: clamp(16px, 2.5vw, 36px);
     outline: none;
     background-color: #fff;
   }
@@ -50,28 +54,60 @@
 <script>
 const table = document.getElementById('multiplicationTable');
 
-// 生成 1~9 乘法表
+// 建立第一列：空格 + 上排 1~9
+const headerRow = document.createElement('tr');
+const emptyCell = document.createElement('th');
+headerRow.appendChild(emptyCell);
+for (let i = 1; i <= 9; i++) {
+  const th = document.createElement('th');
+  th.textContent = i;
+  headerRow.appendChild(th);
+}
+table.appendChild(headerRow);
+
+// 建立每一行
 for (let i = 1; i <= 9; i++) {
   const tr = document.createElement('tr');
+  
+  // 左側標題列
+  const th = document.createElement('th');
+  th.textContent = i;
+  tr.appendChild(th);
+  
   for (let j = 1; j <= 9; j++) {
     const td = document.createElement('td');
-    const input = document.createElement('input');
-    input.setAttribute('type', 'text');
-    input.setAttribute('maxlength', '2');
-    input.addEventListener('input', function() {
-      const answer = i * j;
-      if (this.value == answer) {
-        this.parentElement.className = 'correct done';
-        this.disabled = true; // 正確後鎖定
-      } else if (this.value !== "") {
-        this.parentElement.className = 'wrong';
-      } else {
-        this.parentElement.className = '';
-      }
+    td.textContent = i * j; // 初始顯示答案
+    
+    td.addEventListener('click', function() {
+      if (td.querySelector('input')) return; // 已經有輸入框
+      const currentValue = td.textContent;
+      td.textContent = '';
+      const input = document.createElement('input');
+      input.value = currentValue;
+      td.appendChild(input);
+      input.focus();
+      
+      input.addEventListener('blur', function() {
+        const answer = i * j;
+        if (input.value == answer) {
+          td.className = 'correct done';
+          td.textContent = answer;
+        } else {
+          td.className = 'wrong';
+          td.textContent = input.value;
+        }
+      });
+      
+      input.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+          input.blur();
+        }
+      });
     });
-    td.appendChild(input);
+    
     tr.appendChild(td);
   }
+  
   table.appendChild(tr);
 }
 </script>
