@@ -116,7 +116,8 @@ function createTable() {
         td.textContent = '';
         td.className = ''; // 清空顏色
         const input = document.createElement('input');
-        input.type = 'number'; // 數字輸入
+        input.type = 'tel';       // 數字模式（電話號碼鍵盤）
+        input.inputMode = 'numeric';
         td.appendChild(input);
         input.focus();
         
