@@ -4,99 +4,126 @@
 <meta charset="UTF-8">
 <title>九九乘法表練習</title>
 <style>
-  body {
-    font-family: "Microsoft JhengHei", sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 20px;
-  }
-  h1 {
-    font-size: clamp(28px, 6vw, 56px);
-    margin-bottom: 5px;
-  }
-  p {
-    font-size: clamp(14px, 3vw, 18px);
-    color: #aaa; /* 灰色淡一些 */
-    margin-bottom: 20px;
-  }
-  table {
-    border-collapse: collapse;
-  }
-  td, th {
-    width: 12vw;
-    height: 12vw;
-    max-width: 70px;
-    max-height: 70px;
-    border: 1px solid #ccc;
-    text-align: center;
-    vertical-align: middle;
-    font-size: clamp(20px, 4vw, 48px);
-    position: relative;
-    cursor: pointer;
-    border-radius: 10px;
-    transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
-  }
-  th {
-    background-color: #f0f0f0;
-    font-weight: bold;
-  }
-  input {
-    width: 100%;
-    height: 100%;
-    border: none;
-    text-align: center;
-    font-size: clamp(20px, 4vw, 48px);
-    outline: none;
-    border-radius: 10px;
-    background-color: #fff;
-  }
-  .correct {
-    background-color: #90ee90;
-  }
-  .wrong {
-    background-color: #f08080;
-  }
-  .done {
-    color: #555;
-  }
-  .highlight {
-    background-color: #fff9a6;
-    color: #000;
-    font-weight: bold;
-  }
-  .buttons, .challenge-buttons {
-    margin-top: 15px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-  }
-  button {
-    font-size: clamp(14px, 3vw, 24px);
-    padding: 6px 12px;
-    margin: 0 5px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    color: #fff;
-    transition: 0.2s;
-  }
-  .reset-btn {
-    background-color: #007bff; /* 藍色 */
-  }
-  .clear-btn {
-    background-color: #28a745; /* 綠色 */
-  }
-  .challenge-btn {
-    background-color: #ff8800; /* 橙色 */
-  }
-  .message {
-    margin-top: 10px;
-    font-size: clamp(16px, 4vw, 28px);
-    color: #007bff;
-    font-weight: bold;
-  }
+body {
+  font-family: "Microsoft JhengHei", sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+}
+h1 {
+  font-size: clamp(28px, 6vw, 56px);
+  margin-bottom: 5px;
+}
+p {
+  font-size: clamp(14px, 3vw, 18px);
+  color: #ccc; /* 更淡灰色 */
+  margin-bottom: 20px;
+}
+table {
+  border-collapse: collapse;
+}
+td, th {
+  width: 12vw;
+  height: 12vw;
+  max-width: 70px;
+  max-height: 70px;
+  border: 1px solid #ccc;
+  text-align: center;
+  vertical-align: middle;
+  font-size: clamp(20px, 4vw, 48px);
+  position: relative;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
+}
+th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+input {
+  width: 100%;
+  height: 100%;
+  border: none;
+  text-align: center;
+  font-size: clamp(20px, 4vw, 48px);
+  outline: none;
+  border-radius: 10px;
+  background-color: #fff;
+}
+.correct {
+  background-color: #90ee90;
+}
+.wrong {
+  background-color: #f08080;
+}
+.done {
+  color: #555;
+}
+.highlight {
+  background-color: #fff9a6;
+  color: #000;
+  font-weight: bold;
+}
+.challenge-buttons {
+  margin-top: 15px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.challenge-btn {
+  background-color: #ff8800;
+  font-size: clamp(16px, 4vw, 24px);
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  cursor: pointer;
+}
+.buttons {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+button.reset-btn {
+  background-color: #007bff;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: clamp(14px, 4vw, 20px);
+  cursor: pointer;
+}
+button.clear-btn {
+  background-color: #28a745;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: clamp(14px, 4vw, 20px);
+  cursor: pointer;
+}
+.message {
+  margin-top: 10px;
+  font-size: clamp(16px, 4vw, 28px);
+  color: #007bff;
+  font-weight: bold;
+}
+
+/* 簡單煙火動畫 */
+.firework {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: explode 0.8s forwards;
+}
+@keyframes explode {
+  0% { transform: scale(0.1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
 </style>
 </head>
 <body>
@@ -123,21 +150,16 @@ const messageDiv = document.getElementById('message');
 // 建立挑戰按鈕 2~9
 for (let n = 2; n <= 9; n++) {
   const btn = document.createElement('button');
-  btn.textContent = `挑戰 ${n} 的乘法`;
+  btn.textContent = `挑戰 ${n}`;
   btn.classList.add('challenge-btn');
   btn.addEventListener('click', () => startChallenge(n));
   challengeButtonsDiv.appendChild(btn);
 }
 
-function speakNumber(num) {
-  const utter = new SpeechSynthesisUtterance(num.toString());
-  utter.lang = 'zh-TW';
-  speechSynthesis.speak(utter);
-}
-
 function createTable() {
   table.innerHTML = '';
   messageDiv.textContent = '';
+  currentChallenge = null;
 
   const headerRow = document.createElement('tr');
   const emptyCell = document.createElement('th');
@@ -167,11 +189,7 @@ function createTable() {
 
       td.addEventListener('click', function() {
         if (td.querySelector('input')) return;
-
         highlightHeader(i, j);
-
-        speakNumber(j);
-        setTimeout(() => speakNumber(i), 400);
 
         td.textContent = '';
         td.className = '';
@@ -223,7 +241,6 @@ let currentChallenge = null;
 function startChallenge(n) {
   currentChallenge = n;
   messageDiv.textContent = '';
-  // 清空該數字對應的整列
   for (let row = 1; row <= 9; row++) {
     const td = table.rows[row].cells[n];
     td.textContent = '';
@@ -244,10 +261,22 @@ function checkChallengeCompletion() {
   }
   if (allCorrect) {
     messageDiv.textContent = `挑戰成功，恭喜全對！`;
-    const utter = new SpeechSynthesisUtterance('挑戰成功，恭喜全對！');
-    utter.lang = 'zh-TW';
-    speechSynthesis.speak(utter);
+    showFirework();
     currentChallenge = null;
+  }
+}
+
+// 簡單煙火動畫
+function showFirework() {
+  for (let i = 0; i < 20; i++) {
+    const fire = document.createElement('div');
+    fire.className = 'firework';
+    fire.style.width = fire.style.height = `${Math.random() * 10 + 10}px`;
+    fire.style.backgroundColor = `hsl(${Math.random()*360}, 100%, 50%)`;
+    fire.style.left = `${Math.random()*90}vw`;
+    fire.style.top = `${Math.random()*60}vh`;
+    document.body.appendChild(fire);
+    setTimeout(() => fire.remove(), 800);
   }
 }
 
