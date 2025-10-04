@@ -1,1 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>99乘法表互動遊戲</title>
+<style>
+  body {
+    font-family: "Microsoft JhengHei", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
+  table {
+    border-collapse: collapse;
+  }
+  td {
+    width: 60px;
+    height: 60px;
+    border: 1px solid #ccc;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 18px;
+    position: relative;
+  }
+  input {
+    width: 100%;
+    height: 100%;
+    border: none;
+    text-align: center;
+    font-size: 18px;
+    outline: none;
+    background-color: #fff;
+  }
+  .correct {
+    background-color: #90ee90; /* 淺綠色 */
+  }
+  .wrong {
+    background-color: #f08080; /* 淺紅色 */
+  }
+  .done {
+    background-color: #d3d3d3; /* 淺灰色 */
+  }
+</style>
+</head>
+<body>
 
+<table id="multiplicationTable"></table>
+
+<script>
+const table = document.getElementById('multiplicationTable');
+
+// 生成 1~9 乘法表
+for (let i = 1; i <= 9; i++) {
+  const tr = document.createElement('tr');
+  for (let j = 1; j <= 9; j++) {
+    const td = document.createElement('td');
+    const input = document.createElement('input');
+    input.setAttribute('type', 'text');
+    input.setAttribute('maxlength', '2');
+    input.addEventListener('input', function() {
+      const answer = i * j;
+      if (this.value == answer) {
+        this.parentElement.className = 'correct done';
+        this.disabled = true; // 正確後鎖定
+      } else if (this.value !== "") {
+        this.parentElement.className = 'wrong';
+      } else {
+        this.parentElement.className = '';
+      }
+    });
+    td.appendChild(input);
+    tr.appendChild(td);
+  }
+  table.appendChild(tr);
+}
+</script>
+
+</body>
+</html>
