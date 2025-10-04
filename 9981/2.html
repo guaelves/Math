@@ -47,6 +47,15 @@
     margin: 10px;
     padding: 10px 20px;
     cursor: pointer;
+    border: none;
+    color: #000;
+    border-radius: 8px;
+  }
+  #restartBtn {
+    background-color: #b2fab4; /* 淡綠色 */
+  }
+  #tableBtn {
+    background-color: #b3e5fc; /* 淡藍色 */
   }
 </style>
 </head>
@@ -58,7 +67,7 @@
 <div id="message"></div>
 <div>
   <button id="restartBtn">重新開始</button>
-  <button onclick="location.href='#'">回到九九乘法表練習</button>
+  <button id="tableBtn" onclick="location.href='https://guaelves.github.io/Math/9981/'">回到九九乘法表練習</button>
 </div>
 
 <script>
@@ -159,7 +168,7 @@ function checkAnswer(selected, bubble) {
   if (selected === window.currentAnswer) {
     messageDiv.style.color = "green";
     messageDiv.textContent = "答對！";
-    bubble.style.background = "#90ee90"; // 答對變綠色
+    bubble.style.background = "#90ee90"; // 答對變淡綠色
     correctAnswers++;
     setTimeout(() => {
       currentQuestion++;
@@ -174,7 +183,7 @@ function checkAnswer(selected, bubble) {
   } else {
     messageDiv.style.color = "#f44336";
     messageDiv.textContent = "答錯！";
-    bubble.style.background = "#f44336"; // 紅色
+    bubble.style.background = "#f44336"; // 紅色破掉
     bubble.style.transform = "scale(0)";
     bubble.style.opacity = "0";
   }
@@ -187,8 +196,8 @@ document.getElementById("restartBtn").onclick = () => {
   showQuestion();
 }
 
-// 初始化
-showQuestion();
+// 載入頁面自動顯示第一題
+window.onload = showQuestion;
 </script>
 
 </body>
