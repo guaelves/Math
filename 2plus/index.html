@@ -110,6 +110,7 @@ const musicBtn = document.getElementById("music-btn");
 let totalBubbles=20;
 let correctCount=0;
 let musicPlaying=false;
+let evenBubbles=0; // 2的倍數總數
 
 function isOverlap(x,y,size,bubbles){
   for(let b of bubbles){
@@ -125,6 +126,7 @@ function startGame(){
   gameArea.innerHTML="";
   message.style.display="none";
   correctCount=0;
+  evenBubbles=0;
   gameArea.classList.remove("flash");
   const bubbles=[];
 
@@ -133,6 +135,7 @@ function startGame(){
     bubble.classList.add("bubble");
     const num=Math.floor(Math.random()*99)+1;
     bubble.textContent=num;
+    if(num%2===0) evenBubbles++;
 
     let size=Math.floor(Math.random()*60)+100;
     let x,y,attempts=0;
@@ -171,10 +174,10 @@ function startGame(){
 }
 
 function checkWin(){
-  if(correctCount===totalBubbles){
+  if(correctCount === evenBubbles && evenBubbles>0){
     message.style.display="block";
     showCharacters();
-    gameArea.classList.add("flash"); // 背景閃動
+    gameArea.classList.add("flash");
   }
 }
 
