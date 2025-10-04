@@ -97,7 +97,6 @@
       100% { transform: translateY(0px) rotate(-3deg); }
     }
 
-    /* 🔊 音樂按鈕 */
     #music-btn {
       position: absolute;
       top: 15px;
@@ -136,10 +135,25 @@
     let correctCount = 0;
     let musicPlaying = false;
 
+    // 檢查兩泡泡是否重疊
+    function isOverlap(x, y, size, bubbles) {
+      for (let b of bubbles) {
+        const dx = x - b.x;
+        const dy = y - b.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < (size / 2 + b.size / 2 + 10)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
     function startGame() {
       gameArea.innerHTML = "";
       message.style.display = "none";
       correctCount = 0;
+
+      const bubbles = [];
 
       for (let i = 0; i < totalBubbles; i++) {
         const bubble = document.createElement("div");
@@ -147,12 +161,20 @@
         const num = Math.floor(Math.random() * 99) + 1;
         bubble.textContent = num;
 
-        // 隨機大小與位置
-        const size = Math.floor(Math.random() * 80) + 80;
+        let size = Math.floor(Math.random() * 60) + 90;
+        let x, y, attempts = 0;
+        do {
+          x = Math.random() * (window.innerWidth - size - 30);
+          y = Math.random() * (window.innerHeight * 0.6 - size - 30);
+          attempts++;
+        } while (isOverlap(x, y, size, bubbles) && attempts < 1000);
+
+        bubbles.push({ x, y, size });
+
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
-        bubble.style.left = `${Math.random() * (window.innerWidth - size)}px`;
-        bubble.style.top = `${Math.random() * (window.innerHeight * 0.6)}px`;
+        bubble.style.left = `${x}px`;
+        bubble.style.top = `${y}px`;
 
         bubble.addEventListener("click", () => {
           if (num % 2 === 0) {
