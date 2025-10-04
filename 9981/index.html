@@ -12,24 +12,24 @@
     margin: 20px;
   }
   h1 {
-    font-size: clamp(24px, 5vw, 48px);
+    font-size: clamp(28px, 6vw, 56px);
     margin-bottom: 20px;
   }
   table {
     border-collapse: collapse;
   }
   td, th {
-    width: 10vw;
-    height: 10vw;
-    max-width: 60px;
-    max-height: 60px;
+    width: 12vw;
+    height: 12vw;
+    max-width: 70px;
+    max-height: 70px;
     border: 1px solid #ccc;
     text-align: center;
     vertical-align: middle;
-    font-size: clamp(16px, 2.5vw, 36px);
+    font-size: clamp(20px, 4vw, 48px);
     position: relative;
     cursor: pointer;
-    border-radius: 10px; /* 圓角 */
+    border-radius: 10px;
     transition: background-color 0.2s;
   }
   th {
@@ -41,7 +41,7 @@
     height: 100%;
     border: none;
     text-align: center;
-    font-size: clamp(16px, 2.5vw, 36px);
+    font-size: clamp(20px, 4vw, 48px);
     outline: none;
     border-radius: 10px;
     background-color: #fff;
@@ -53,13 +53,13 @@
     background-color: #f08080; /* 淺紅色 */
   }
   .done {
-    background-color: #d3d3d3; /* 淺灰色 */
+    color: #555; /* 淡灰色文字 */
   }
   .buttons {
     margin-top: 20px;
   }
   button {
-    font-size: clamp(14px, 3vw, 24px);
+    font-size: clamp(16px, 4vw, 28px);
     padding: 8px 16px;
     margin: 0 10px;
     border-radius: 8px;
@@ -107,32 +107,33 @@ function createTable() {
     
     for (let j = 1; j <= 9; j++) {
       const td = document.createElement('td');
-      td.textContent = i * j; // 初始顯示答案
+      td.textContent = i * j;
+      td.classList.add('done'); // 淡灰色初始
+      td.dataset.answer = i * j;
       
       td.addEventListener('click', function() {
         if (td.querySelector('input')) return;
-        const currentValue = td.textContent;
         td.textContent = '';
+        td.className = ''; // 清空顏色
         const input = document.createElement('input');
-        input.value = currentValue;
+        input.type = 'number'; // 數字輸入
         td.appendChild(input);
         input.focus();
         
         input.addEventListener('blur', function() {
-          const answer = i * j;
-          if (input.value == answer) {
-            td.className = 'correct done';
+          const answer = parseInt(td.dataset.answer);
+          const val = parseInt(input.value);
+          if (val === answer) {
+            td.className = 'correct';
             td.textContent = answer;
           } else {
             td.className = 'wrong';
-            td.textContent = input.value;
+            td.textContent = input.value || '';
           }
         });
-        
+
         input.addEventListener('keydown', function(e) {
-          if (e.key === 'Enter') {
-            input.blur();
-          }
+          if (e.key === 'Enter') input.blur();
         });
       });
       
@@ -147,7 +148,6 @@ createTable();
 
 // 按鈕事件
 document.getElementById('clearBtn').addEventListener('click', () => {
-  // 清空中間格子，保留左上標題
   const tds = table.querySelectorAll('td');
   tds.forEach(td => {
     td.textContent = '';
