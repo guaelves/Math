@@ -306,5 +306,29 @@ document.getElementById('resetBtn').addEventListener('click', () => {
 createTable();
 </script>
 
+<!-- 最下面的泡泡遊戲按鈕 -->
+<div class="bubble-buttons" id="bubbleButtons" style="margin-top:20px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px;"></div>
+
+<script>
+// 建立 2~9 泡泡遊戲按鈕
+const bubbleButtonsDiv = document.getElementById('bubbleButtons');
+for (let n = 2; n <= 9; n++) {
+  const btn = document.createElement('a');
+  btn.textContent = `${n} 乘法泡泡`;
+  btn.href = `https://guaelves.github.io/Math/9981/${n}.html`;
+  btn.target = "_blank"; // 新分頁開啟
+  btn.style.display = 'inline-block';
+  btn.style.backgroundColor = '#c8a2f7'; // 淡紫色
+  btn.style.color = '#fff';
+  btn.style.textAlign = 'center';
+  btn.style.fontSize = 'clamp(16px, 4vw, 24px)'; // 跟挑戰按鈕一樣
+  btn.style.padding = '10px';
+  btn.style.borderRadius = '8px';
+  btn.style.textDecoration = 'none';
+  btn.style.cursor = 'pointer';
+  bubbleButtonsDiv.appendChild(btn);
+}
+</script>
+  
 </body>
 </html>
