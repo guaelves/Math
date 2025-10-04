@@ -7,10 +7,10 @@
     body {
       font-family: "Microsoft JhengHei", sans-serif;
       background: #f0f8ff;
-      text-align: center;
       margin: 0;
       padding: 0;
-      overflow-x: hidden;
+      overflow: hidden;
+      text-align: center;
     }
 
     .container {
@@ -23,47 +23,35 @@
     }
 
     #question {
-      font-size: 28px;
-      margin-bottom: 20px;
+      font-size: 60px;
+      margin-bottom: 30px;
     }
 
     #bubbles-area {
-      display: flex;
-      justify-content: center;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-bottom: 20px;
       position: relative;
+      width: 100%;
+      height: 60vh;
+      margin: 0 auto 20px;
     }
 
     .bubble {
-      width: 100px;
-      height: 100px;
-      background: #87cefa;
+      position: absolute;
       border-radius: 50%;
+      background: rgba(135, 206, 250, 0.3); /* 初始透明色 */
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 32px;
+      font-size: 60px;
       cursor: pointer;
-      transition: transform 0.2s;
-      position: relative;
-    }
-
-    .bubble:hover {
-      transform: scale(1.1);
-    }
-
-    .correct {
-      background: #ff7f50;
-      transform: scale(1.2);
+      transition: all 0.3s;
+      user-select: none;
     }
 
     #feedback {
-      font-size: 24px;
-      height: 30px;
-      color: green;
+      font-size: 30px;
+      height: 40px;
       margin-bottom: 20px;
+      color: green;
     }
 
     #end-buttons button {
@@ -72,11 +60,9 @@
       margin: 10px;
     }
 
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
 
-    /* 小彩色泡泡 */
+    /* 彩色氣泡動畫 */
     .confetti {
       position: absolute;
       width: 15px;
@@ -101,7 +87,7 @@
     <div id="bubbles-area"></div>
     <p id="feedback"></p>
     <div id="end-buttons" class="hidden">
-      <button id="retry-btn">重新挑戰</button>
+      <button id="retry-btn">重新開始</button>
       <button id="back-btn">回到九九乘法表練習</button>
     </div>
   </div>
@@ -127,7 +113,7 @@
       const multiplier = 2;
       const number = Math.floor(Math.random() * 9) + 1;
       const answer = multiplier * number;
-      questionEl.textContent = `題目: ${multiplier} × ${number} = ?`;
+      questionEl.textContent = `${multiplier} × ${number} = ?`;
       speak(`${multiplier} 乘以 ${number}`);
       generateBubbles(answer);
     }
@@ -148,10 +134,39 @@
         const bubble = document.createElement("div");
         bubble.classList.add("bubble");
         bubble.textContent = num;
-        bubble.addEventListener("click", () => checkAnswer(num, bubble));
+        // 隨機大小 60~100 px
+        const size = 60 + Math.random()*40;
+        bubble.style.width = `${size}px`;
+        bubble.style.height = `${size}px`;
+        bubble.style.fontSize = `${size*0.6}px`;
+
+        // 隨機位置，避免超出螢幕
+        let left, top;
+        do {
+          left = Math.random() * (bubblesArea.clientWidth - size);
+          top = Math.random() * (bubblesArea.clientHeight - size);
+        } while (checkOverlap(left, top, size)); // 避免重疊
+
+        bubble.style.left = `${left}px`;
+        bubble.style.top = `${top}px`;
+
+        bubble.addEventListener("click", () => handleClick(num, bubble));
         bubble.addEventListener("click", () => speak(num.toString()));
+
         bubblesArea.appendChild(bubble);
       });
+    }
+
+    const bubblePositions = [];
+    function checkOverlap(left, top, size) {
+      for (let pos of bubblePositions) {
+        const dx = pos.left - left;
+        const dy = pos.top - top;
+        const distance = Math.sqrt(dx*dx + dy*dy);
+        if (distance < (pos.size + size)/1.5) return true;
+      }
+      bubblePositions.push({left, top, size});
+      return false;
     }
 
     function createConfetti(bubble) {
@@ -159,8 +174,8 @@
         const confetti = document.createElement("div");
         confetti.classList.add("confetti");
         confetti.style.background = `hsl(${Math.random()*360}, 70%, 60%)`;
-        confetti.style.left = `${bubble.offsetLeft + 40}px`;
-        confetti.style.top = `${bubble.offsetTop + 40}px`;
+        confetti.style.left = `${bubble.offsetLeft + bubble.offsetWidth/2}px`;
+        confetti.style.top = `${bubble.offsetTop + bubble.offsetHeight/2}px`;
         const x = (Math.random() - 0.5) * 200 + "px";
         const y = -Math.random() * 200 + "px";
         confetti.style.setProperty('--x', x);
@@ -170,37 +185,41 @@
       }
     }
 
-    function checkAnswer(selected, bubble) {
-      const correct = questionEl.textContent.match(/\d+$/)[0] * 1;
+    function handleClick(selected, bubble) {
+      const correct = parseInt(questionEl.textContent.match(/\d+$/)[0]);
       if (selected === correct) {
-        bubble.classList.add("correct");
-        feedbackEl.textContent = "答對了！";
+        bubble.style.background = `hsl(${Math.random()*360},70%,60%)`;
         createConfetti(bubble);
-        setTimeout(() => {
-          currentQuestion++;
-          if (currentQuestion < totalQuestions) {
-            feedbackEl.textContent = "";
-            generateQuestion();
-          } else {
-            feedbackEl.textContent = "恭喜全部答對！";
-            bubblesArea.innerHTML = "";
-            endButtons.classList.remove("hidden");
-          }
-        }, 700);
+        feedbackEl.textContent = "答對了！";
       } else {
         bubble.style.background = "#f08080";
+        feedbackEl.textContent = "答錯了！";
       }
+      // 下一題
+      setTimeout(() => {
+        currentQuestion++;
+        if (currentQuestion < totalQuestions) {
+          feedbackEl.textContent = "";
+          bubblePositions.length = 0; // 清空位置
+          generateQuestion();
+        } else {
+          feedbackEl.textContent = "恭喜全部答對！";
+          bubblesArea.innerHTML = "";
+          endButtons.classList.remove("hidden");
+        }
+      }, 700);
     }
 
     retryBtn.addEventListener("click", () => {
       currentQuestion = 0;
       feedbackEl.textContent = "";
+      bubblePositions.length = 0;
       endButtons.classList.add("hidden");
       generateQuestion();
     });
 
     backBtn.addEventListener("click", () => {
-      window.location.href = "#"; 
+      window.location.href = "#"; // 可改成九九乘法表頁面
     });
 
     generateQuestion();
