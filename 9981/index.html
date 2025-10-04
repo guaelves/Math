@@ -2,26 +2,35 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>九九乘法表互動遊戲</title>
+<title>九九乘法表遊戲</title>
 <style>
   body {
     font-family: "Microsoft JhengHei", sans-serif;
     display: flex;
-    justify-content: center;
-    margin-top: 20px;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+  }
+  h1 {
+    font-size: clamp(24px, 5vw, 48px);
+    margin-bottom: 20px;
   }
   table {
     border-collapse: collapse;
   }
   td, th {
-    width: 10vw;       /* 根據螢幕寬度自動調整格子大小 */
+    width: 10vw;
     height: 10vw;
+    max-width: 60px;
+    max-height: 60px;
     border: 1px solid #ccc;
     text-align: center;
     vertical-align: middle;
-    font-size: clamp(16px, 2.5vw, 36px); /* 文字大小動態調整 */
+    font-size: clamp(16px, 2.5vw, 36px);
     position: relative;
     cursor: pointer;
+    border-radius: 10px; /* 圓角 */
+    transition: background-color 0.2s;
   }
   th {
     background-color: #f0f0f0;
@@ -34,6 +43,7 @@
     text-align: center;
     font-size: clamp(16px, 2.5vw, 36px);
     outline: none;
+    border-radius: 10px;
     background-color: #fff;
   }
   .correct {
@@ -45,71 +55,109 @@
   .done {
     background-color: #d3d3d3; /* 淺灰色 */
   }
+  .buttons {
+    margin-top: 20px;
+  }
+  button {
+    font-size: clamp(14px, 3vw, 24px);
+    padding: 8px 16px;
+    margin: 0 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+  }
 </style>
 </head>
 <body>
 
+<h1>九九乘法表遊戲</h1>
 <table id="multiplicationTable"></table>
+
+<div class="buttons">
+  <button id="clearBtn">清空</button>
+  <button id="resetBtn">重新開始</button>
+</div>
 
 <script>
 const table = document.getElementById('multiplicationTable');
 
-// 建立第一列：空格 + 上排 1~9
-const headerRow = document.createElement('tr');
-const emptyCell = document.createElement('th');
-headerRow.appendChild(emptyCell);
-for (let i = 1; i <= 9; i++) {
-  const th = document.createElement('th');
-  th.textContent = i;
-  headerRow.appendChild(th);
-}
-table.appendChild(headerRow);
+function createTable() {
+  table.innerHTML = '';
 
-// 建立每一行
-for (let i = 1; i <= 9; i++) {
-  const tr = document.createElement('tr');
-  
-  // 左側標題列
-  const th = document.createElement('th');
-  th.textContent = i;
-  tr.appendChild(th);
-  
-  for (let j = 1; j <= 9; j++) {
-    const td = document.createElement('td');
-    td.textContent = i * j; // 初始顯示答案
-    
-    td.addEventListener('click', function() {
-      if (td.querySelector('input')) return; // 已經有輸入框
-      const currentValue = td.textContent;
-      td.textContent = '';
-      const input = document.createElement('input');
-      input.value = currentValue;
-      td.appendChild(input);
-      input.focus();
-      
-      input.addEventListener('blur', function() {
-        const answer = i * j;
-        if (input.value == answer) {
-          td.className = 'correct done';
-          td.textContent = answer;
-        } else {
-          td.className = 'wrong';
-          td.textContent = input.value;
-        }
-      });
-      
-      input.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter') {
-          input.blur();
-        }
-      });
-    });
-    
-    tr.appendChild(td);
+  // 建立第一列：左上角 "x" + 上排 1~9
+  const headerRow = document.createElement('tr');
+  const emptyCell = document.createElement('th');
+  emptyCell.textContent = 'x';
+  headerRow.appendChild(emptyCell);
+  for (let i = 1; i <= 9; i++) {
+    const th = document.createElement('th');
+    th.textContent = i;
+    headerRow.appendChild(th);
   }
-  
-  table.appendChild(tr);
+  table.appendChild(headerRow);
+
+  // 建立每一行
+  for (let i = 1; i <= 9; i++) {
+    const tr = document.createElement('tr');
+    
+    // 左側標題列
+    const th = document.createElement('th');
+    th.textContent = i;
+    tr.appendChild(th);
+    
+    for (let j = 1; j <= 9; j++) {
+      const td = document.createElement('td');
+      td.textContent = i * j; // 初始顯示答案
+      
+      td.addEventListener('click', function() {
+        if (td.querySelector('input')) return;
+        const currentValue = td.textContent;
+        td.textContent = '';
+        const input = document.createElement('input');
+        input.value = currentValue;
+        td.appendChild(input);
+        input.focus();
+        
+        input.addEventListener('blur', function() {
+          const answer = i * j;
+          if (input.value == answer) {
+            td.className = 'correct done';
+            td.textContent = answer;
+          } else {
+            td.className = 'wrong';
+            td.textContent = input.value;
+          }
+        });
+        
+        input.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter') {
+            input.blur();
+          }
+        });
+      });
+      
+      tr.appendChild(td);
+    }
+    table.appendChild(tr);
+  }
 }
+
+// 初始建立表格
+createTable();
+
+// 按鈕事件
+document.getElementById('clearBtn').addEventListener('click', () => {
+  // 清空中間格子，保留左上標題
+  const tds = table.querySelectorAll('td');
+  tds.forEach(td => {
+    td.textContent = '';
+    td.className = '';
+  });
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  createTable();
+});
 </script>
 
 </body>
