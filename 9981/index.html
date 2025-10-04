@@ -17,7 +17,7 @@ h1 {
 }
 p {
   font-size: clamp(14px, 3vw, 18px);
-  color: #ccc;
+  color: #ccc; /* 更淡灰色 */
   margin-bottom: 20px;
 }
 table {
@@ -111,6 +111,8 @@ button.clear-btn {
   color: #007bff;
   font-weight: bold;
 }
+
+/* 簡單煙火動畫 */
 .firework {
   position: absolute;
   border-radius: 50%;
@@ -154,13 +156,6 @@ for (let n = 2; n <= 9; n++) {
   challengeButtonsDiv.appendChild(btn);
 }
 
-// 播放數字語音
-function speakNumber(num) {
-  const utter = new SpeechSynthesisUtterance(num.toString());
-  utter.lang = 'zh-TW';
-  speechSynthesis.speak(utter);
-}
-
 function createTable() {
   table.innerHTML = '';
   messageDiv.textContent = '';
@@ -195,10 +190,6 @@ function createTable() {
       td.addEventListener('click', function() {
         if (td.querySelector('input')) return;
         highlightHeader(i, j);
-
-        // 播放上排數字 → 左列數字
-        speakNumber(j);
-        setTimeout(() => speakNumber(i), 400);
 
         td.textContent = '';
         td.className = '';
@@ -294,4 +285,17 @@ document.getElementById('clearBtn').addEventListener('click', () => {
   const tds = table.querySelectorAll('td');
   tds.forEach(td => {
     td.textContent = '';
-    td.class
+    td.className = '';
+  });
+  messageDiv.textContent = '';
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  createTable();
+});
+
+createTable();
+</script>
+
+</body>
+</html>
