@@ -1,1 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>🐝 2 的倍數蜂巢遊戲 🐝</title>
+  <style>
+    body {
+      font-family: "Microsoft JhengHei", sans-serif;
+      background: #f0f8ff;
+      text-align: center;
+      padding: 30px;
+    }
 
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    #score {
+      font-size: 24px;
+      color: #2e7d32;
+      margin-bottom: 20px;
+    }
+
+    /* 🐝 蜂巢排列設定 */
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(5, 110px);
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    /* 🟡 六角形格子樣式 */
+    .cell {
+      width: 100px;
+      aspect-ratio: 1 / 1;
+      background: #ffffff;
+      color: #333;
+      border: 3px solid #bbb;
+      clip-path: polygon(
+        50% 0%, 
+        93% 25%, 
+        93% 75%, 
+        50% 100%, 
+        7% 75%, 
+        7% 25%
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .cell:hover {
+      transform: scale(1.08);
+    }
+
+    .correct {
+      background-color: #ffeb3b; /* 黃色 */
+      color: #000;
+      border-color: #fdd835;
+    }
+
+    .wrong {
+      background-color: #f44336; /* 紅色 */
+      color: #fff;
+      border-color: #d32f2f;
+    }
+
+    button {
+      font-size: 22px;
+      padding: 10px 20px;
+      background: #4caf50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <h1>🐝 2 的倍數蜂巢遊戲 🐝</h1>
+  <div id="score">目前答對：0 格</div>
+  <div id="game-board"></div>
+  <button onclick="startGame()">重新開始遊戲</button>
+
+  <!-- ✅ 使用內建簡單音效 -->
+  <audio id="correct-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
+  <audio id="wrong-sound" src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg"></audio>
+
+  <script>
+    const board = document.getElementById("game-board");
+    const scoreDisplay = document.getElementById("score");
+    const correctSound = document.getElementById("correct-sound");
+    const wrongSound = document.getElementById("wrong-sound");
+
+    let score = 0;
+
+    function startGame() {
+      board.innerHTML = "";
+      score = 0;
+      updateScore();
+
+      for (let i = 0; i < 20; i++) {
+        const num = Math.floor(Math.random() * 99) + 1;
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.textContent = num;
+
+        cell.addEventListener("click", () => {
+          if (num % 2 === 0) {
+            cell.classList.add("correct");
+            correctSound.currentTime = 0;
+            correctSound.play();
+            score++;
+            updateScore();
+          } else {
+            cell.classList.add("wrong");
+            wrongSound.currentTime = 0;
+            wrongSound.play();
+          }
+          cell.style.pointerEvents = "none";
+        });
+
+        // 偶數行蜂巢錯位
+        if (Math.floor(i / 5) % 2 === 1) {
+          cell.style.marginLeft = "55px";
+        }
+
+        board.appendChild(cell);
+      }
+    }
+
+    function updateScore() {
+      scoreDisplay.textContent = `目前答對：${score} 格`;
+    }
+
+    startGame();
+  </script>
+</body>
+</html>
