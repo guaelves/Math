@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>九九乘法表遊戲</title>
+<title>九九乘法表練習</title>
 <style>
   body {
     font-family: "Microsoft JhengHei", sans-serif;
@@ -47,16 +47,17 @@
     background-color: #fff;
   }
   .correct {
-    background-color: #90ee90;
+    background-color: #90ee90; /* 淺綠色 */
   }
   .wrong {
-    background-color: #f08080;
+    background-color: #f08080; /* 淺紅色 */
   }
   .done {
     color: #555; /* 淡灰色文字 */
   }
   .highlight {
-    color: #ff0;
+    background-color: #fff9a6; /* 淡黃色底 */
+    color: #000; /* 黑色字 */
     font-weight: bold;
   }
   .buttons {
@@ -74,7 +75,7 @@
 </head>
 <body>
 
-<h1>九九乘法表遊戲</h1>
+<h1>九九乘法表練習</h1>
 <table id="multiplicationTable"></table>
 
 <div class="buttons">
@@ -126,12 +127,12 @@ function createTable() {
       td.addEventListener('click', function() {
         if (td.querySelector('input')) return;
 
-        // 高亮上排數字和左列數字
+        // 高亮上排與左列
         highlightHeader(i, j);
 
         // 語音播上排再播左列
         speakNumber(j); // 上排
-        setTimeout(() => speakNumber(i), 400); // 左列，間隔 0.4s
+        setTimeout(() => speakNumber(i), 400); // 左列
         
         td.textContent = '';
         td.className = ''; // 清空顏色
@@ -169,7 +170,7 @@ function createTable() {
 function highlightHeader(row, col) {
   removeHighlight();
   const ths = table.querySelectorAll('th');
-  // 上排第 col 個 th (加 1 因為第一格是 x)
+  // 上排第 col 個 th (第一格是 x)
   ths[col].classList.add('highlight');
   // 左列第 row+1 個 th (第一行是 header)
   table.rows[row].cells[0].classList.add('highlight');
