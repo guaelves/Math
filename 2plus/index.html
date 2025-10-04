@@ -1,237 +1,190 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>🎈 2 的倍數泡泡遊戲 🎈</title>
-  <style>
-    body {
-      font-family: "Microsoft JhengHei", sans-serif;
-      background: linear-gradient(to bottom right, #cfe9ff, #f3f8ff);
-      overflow: hidden;
-      height: 100vh;
-      margin: 0;
-      text-align: center;
-      user-select: none;
-    }
+<meta charset="UTF-8">
+<title>🎈 2 的倍數泡泡遊戲 🎈</title>
+<style>
+  body {
+    font-family: "Microsoft JhengHei", sans-serif;
+    background: linear-gradient(to bottom right, #cfe9ff, #f3f8ff);
+    overflow: hidden;
+    height: 100vh;
+    margin: 0;
+    text-align: center;
+    user-select: none;
+  }
+  h1 { margin-top:20px; color:#2c3e50; }
+  #game-area { position: relative; width:100%; height:75vh; overflow:hidden; }
 
-    h1 {
-      margin-top: 20px;
-      color: #2c3e50;
-    }
+  .bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: 3px solid #7ec8e3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #333;
+    font-size: 40px;
+    cursor: pointer;
+    transition: all 0.4s ease;
+  }
 
-    #game-area {
-      position: relative;
-      width: 100%;
-      height: 75vh;
-      overflow: hidden;
-    }
+  .correct {
+    transform: scale(1.15);
+    box-shadow: 0 0 20px rgba(255,255,0,0.7);
+  }
 
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.9);
-      border: 3px solid #7ec8e3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #333;
-      font-size: 36px;
-      cursor: pointer;
-      transition: all 0.4s ease;
-    }
+  .wrong {
+    border: 3px dashed #f44336;
+    background: rgba(255,255,255,0.3);
+    color: #f44336;
+    transform: scale(1.1);
+  }
 
-    .correct {
-      transform: scale(1.15);
-      box-shadow: 0 0 20px rgba(255, 255, 0, 0.7);
-    }
+  .pop { transform: scale(0); opacity: 0; transition: 0.3s; }
 
-    .pop {
-      transform: scale(0);
-      opacity: 0;
-    }
+  #message {
+    font-size: 36px;
+    color: #ff4081;
+    font-weight: bold;
+    margin-top: 10px;
+    display: none;
+  }
 
-    #message {
-      font-size: 36px;
-      color: #ff4081;
-      font-weight: bold;
-      margin-top: 10px;
-      display: none;
-    }
+  button {
+    font-size:22px; padding:10px 20px;
+    background:#4caf50; color:white;
+    border:none; border-radius:8px; cursor:pointer;
+    transition:0.2s;
+  }
+  button:hover { background:#45a049; }
 
-    button {
-      font-size: 22px;
-      padding: 10px 20px;
-      background: #4caf50;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+  .character { position:absolute; bottom:30px; width:100px; animation: float 5s ease-in-out infinite alternate; }
+  .boy { left:20%; animation-delay:0s; }
+  .girl { right:20%; animation-delay:2.5s; }
+  @keyframes float {
+    0% { transform:translateY(0px) rotate(0deg); }
+    50% { transform:translateY(-20px) rotate(3deg); }
+    100% { transform:translateY(0px) rotate(-3deg); }
+  }
 
-    button:hover {
-      background: #45a049;
-    }
-
-    /* 👦👧 角色動畫 */
-    .character {
-      position: absolute;
-      bottom: 30px;
-      width: 100px;
-      animation: float 5s ease-in-out infinite alternate;
-    }
-
-    .boy {
-      left: 20%;
-      animation-delay: 0s;
-    }
-
-    .girl {
-      right: 20%;
-      animation-delay: 2.5s;
-    }
-
-    @keyframes float {
-      0% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-20px) rotate(3deg); }
-      100% { transform: translateY(0px) rotate(-3deg); }
-    }
-
-    #music-btn {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: #ffca28;
-      border: none;
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      font-size: 22px;
-      cursor: pointer;
-    }
-  </style>
+  #music-btn {
+    position:absolute; top:15px; right:15px;
+    background:#ffca28; border:none; border-radius:50%; width:50px; height:50px; font-size:22px; cursor:pointer;
+  }
+</style>
 </head>
 <body>
-  <h1>🎈 2 的倍數泡泡遊戲 🎈</h1>
-  <button id="music-btn">🔊</button>
-  <div id="game-area"></div>
-  <div id="message">🎉 恭喜全部答對了！ 🎉</div>
-  <button onclick="startGame()">重新開始遊戲</button>
+<h1>🎈 2 的倍數泡泡遊戲 🎈</h1>
+<button id="music-btn">🔊</button>
+<div id="game-area"></div>
+<div id="message">🎉 恭喜全部答對了！ 🎉</div>
+<button onclick="startGame()">重新開始遊戲</button>
 
-  <!-- 🎵 音效與音樂 -->
-  <audio id="pop-sound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
-  <audio id="correct-sound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
-  <audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8bb776c8df.mp3?filename=happy-kids-110997.mp3" loop></audio>
+<!-- 音效 -->
+<audio id="pop-sound" src="https://actions.google.com/sounds/v1/cartoon/pop.ogg"></audio>
+<audio id="correct-sound" src="https://actions.google.com/sounds/v1/cartoon/slide_whistle_to_drum_hit.ogg"></audio>
+<audio id="bg-music" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_8bb776c8df.mp3?filename=happy-kids-110997.mp3" loop></audio>
 
-  <script>
-    const gameArea = document.getElementById("game-area");
-    const message = document.getElementById("message");
-    const popSound = document.getElementById("pop-sound");
-    const correctSound = document.getElementById("correct-sound");
-    const bgMusic = document.getElementById("bg-music");
-    const musicBtn = document.getElementById("music-btn");
+<script>
+const gameArea = document.getElementById("game-area");
+const message = document.getElementById("message");
+const popSound = document.getElementById("pop-sound");
+const correctSound = document.getElementById("correct-sound");
+const bgMusic = document.getElementById("bg-music");
+const musicBtn = document.getElementById("music-btn");
 
-    let totalBubbles = 20;
-    let correctCount = 0;
-    let musicPlaying = false;
+let totalBubbles=20;
+let correctCount=0;
+let musicPlaying=false;
 
-    // 檢查兩泡泡是否重疊
-    function isOverlap(x, y, size, bubbles) {
-      for (let b of bubbles) {
-        const dx = x - b.x;
-        const dy = y - b.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if (distance < (size / 2 + b.size / 2 + 10)) {
-          return true;
-        }
-      }
-      return false;
-    }
+function isOverlap(x,y,size,bubbles){
+  for(let b of bubbles){
+    const dx=x-b.x;
+    const dy=y-b.y;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    if(dist<(size/2 + b.size/2 +10)) return true;
+  }
+  return false;
+}
 
-    function startGame() {
-      gameArea.innerHTML = "";
-      message.style.display = "none";
-      correctCount = 0;
+function startGame(){
+  gameArea.innerHTML="";
+  message.style.display="none";
+  correctCount=0;
 
-      const bubbles = [];
+  const bubbles=[];
 
-      for (let i = 0; i < totalBubbles; i++) {
-        const bubble = document.createElement("div");
-        bubble.classList.add("bubble");
-        const num = Math.floor(Math.random() * 99) + 1;
-        bubble.textContent = num;
+  for(let i=0;i<totalBubbles;i++){
+    const bubble=document.createElement("div");
+    bubble.classList.add("bubble");
+    const num=Math.floor(Math.random()*99)+1;
+    bubble.textContent=num;
 
-        let size = Math.floor(Math.random() * 60) + 90;
-        let x, y, attempts = 0;
-        do {
-          x = Math.random() * (window.innerWidth - size - 30);
-          y = Math.random() * (window.innerHeight * 0.6 - size - 30);
-          attempts++;
-        } while (isOverlap(x, y, size, bubbles) && attempts < 1000);
+    let size=Math.floor(Math.random()*60)+90;
+    let x,y,attempts=0;
+    do {
+      x=Math.random()*(window.innerWidth-size-30);
+      y=Math.random()*(window.innerHeight*0.6 - size-30);
+      attempts++;
+    } while(isOverlap(x,y,size,bubbles)&&attempts<1000);
+    bubbles.push({x,y,size});
 
-        bubbles.push({ x, y, size });
+    bubble.style.width=`${size}px`;
+    bubble.style.height=`${size}px`;
+    bubble.style.left=`${x}px`;
+    bubble.style.top=`${y}px`;
 
-        bubble.style.width = `${size}px`;
-        bubble.style.height = `${size}px`;
-        bubble.style.left = `${x}px`;
-        bubble.style.top = `${y}px`;
-
-        bubble.addEventListener("click", () => {
-          if (num % 2 === 0) {
-            const colors = ["#ffcc80", "#81d4fa", "#ce93d8", "#a5d6a7", "#f48fb1", "#fff59d"];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            bubble.style.background = color;
-            bubble.classList.add("correct");
-            correctSound.currentTime = 0;
-            correctSound.play();
-            bubble.style.pointerEvents = "none";
-            correctCount++;
-            checkWin();
-          } else {
-            bubble.classList.add("pop");
-            popSound.currentTime = 0;
-            popSound.play();
-            setTimeout(() => bubble.remove(), 300);
-          }
-        });
-
-        gameArea.appendChild(bubble);
-      }
-    }
-
-    function checkWin() {
-      if (correctCount === totalBubbles) {
-        message.style.display = "block";
-        showCharacters();
-      }
-    }
-
-    function showCharacters() {
-      const boy = document.createElement("img");
-      boy.src = "https://cdn-icons-png.flaticon.com/512/2922/2922510.png";
-      boy.classList.add("character", "boy");
-
-      const girl = document.createElement("img");
-      girl.src = "https://cdn-icons-png.flaticon.com/512/2922/2922561.png";
-      girl.classList.add("character", "girl");
-
-      gameArea.appendChild(boy);
-      gameArea.appendChild(girl);
-    }
-
-    // 🎵 背景音樂控制
-    musicBtn.addEventListener("click", () => {
-      if (musicPlaying) {
-        bgMusic.pause();
-        musicBtn.textContent = "🔇";
+    bubble.addEventListener("click",()=>{
+      if(num%2===0){
+        const colors=["#ffcc80","#81d4fa","#ce93d8","#a5d6a7","#f48fb1","#fff59d"];
+        bubble.style.background=colors[Math.floor(Math.random()*colors.length)];
+        bubble.classList.add("correct");
+        bubble.style.pointerEvents="none";
+        correctSound.currentTime=0;
+        correctSound.play();
+        correctCount++;
+        checkWin();
       } else {
-        bgMusic.play();
-        musicBtn.textContent = "🔊";
+        bubble.classList.add("pop");
+        popSound.currentTime=0;
+        popSound.play();
+        setTimeout(()=>bubble.classList.add("wrong"),300);
       }
-      musicPlaying = !musicPlaying;
     });
 
-    startGame();
-  </script>
+    gameArea.appendChild(bubble);
+  }
+}
+
+function checkWin(){
+  if(correctCount===totalBubbles){
+    message.style.display="block";
+    showCharacters();
+  }
+}
+
+function showCharacters(){
+  const boy=document.createElement("img");
+  boy.src="https://cdn-icons-png.flaticon.com/512/2922/2922510.png";
+  boy.classList.add("character","boy");
+
+  const girl=document.createElement("img");
+  girl.src="https://cdn-icons-png.flaticon.com/512/2922/2922561.png";
+  girl.classList.add("character","girl");
+
+  gameArea.appendChild(boy);
+  gameArea.appendChild(girl);
+}
+
+musicBtn.addEventListener("click",()=>{
+  if(musicPlaying){ bgMusic.pause(); musicBtn.textContent="🔇"; }
+  else { bgMusic.play(); musicBtn.textContent="🔊"; }
+  musicPlaying=!musicPlaying;
+});
+
+startGame();
+</script>
 </body>
 </html>
