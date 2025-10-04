@@ -23,7 +23,7 @@
     }
 
     #question {
-      font-size: 60px;
+      font-size: 80px; /* 題目數字更大 */
       margin-bottom: 30px;
     }
 
@@ -37,32 +37,33 @@
     .bubble {
       position: absolute;
       border-radius: 50%;
-      background: rgba(135, 206, 250, 0.3); /* 初始透明色 */
+      background: rgba(135, 206, 250, 0.3); /* 初始透明 */
       display: flex;
       justify-content: center;
       align-items: center;
-      font-size: 60px;
+      font-weight: bold;
+      color: white;
+      border: 4px solid black; /* 黑框 */
       cursor: pointer;
       transition: all 0.3s;
       user-select: none;
     }
 
     #feedback {
-      font-size: 30px;
+      font-size: 36px;
       height: 40px;
       margin-bottom: 20px;
       color: green;
     }
 
     #end-buttons button {
-      font-size: 24px;
+      font-size: 28px;
       padding: 10px 20px;
       margin: 10px;
     }
 
     .hidden { display: none; }
 
-    /* 彩色氣泡動畫 */
     .confetti {
       position: absolute;
       width: 15px;
@@ -102,6 +103,7 @@
 
     let currentQuestion = 0;
     const totalQuestions = 9;
+    const bubblePositions = [];
 
     function speak(text) {
       const utter = new SpeechSynthesisUtterance(text);
@@ -120,6 +122,7 @@
 
     function generateBubbles(answer) {
       bubblesArea.innerHTML = "";
+      bubblePositions.length = 0;
       let numbers = [answer];
 
       while (numbers.length < 5) {
@@ -134,18 +137,21 @@
         const bubble = document.createElement("div");
         bubble.classList.add("bubble");
         bubble.textContent = num;
+
         // 隨機大小 60~100 px
         const size = 60 + Math.random()*40;
         bubble.style.width = `${size}px`;
         bubble.style.height = `${size}px`;
         bubble.style.fontSize = `${size*0.6}px`;
 
-        // 隨機位置，避免超出螢幕
+        // 隨機位置
         let left, top;
+        let attempts = 0;
         do {
           left = Math.random() * (bubblesArea.clientWidth - size);
           top = Math.random() * (bubblesArea.clientHeight - size);
-        } while (checkOverlap(left, top, size)); // 避免重疊
+          attempts++;
+        } while (checkOverlap(left, top, size) && attempts < 50);
 
         bubble.style.left = `${left}px`;
         bubble.style.top = `${top}px`;
@@ -157,7 +163,6 @@
       });
     }
 
-    const bubblePositions = [];
     function checkOverlap(left, top, size) {
       for (let pos of bubblePositions) {
         const dx = pos.left - left;
@@ -195,12 +200,12 @@
         bubble.style.background = "#f08080";
         feedbackEl.textContent = "答錯了！";
       }
+
       // 下一題
       setTimeout(() => {
         currentQuestion++;
         if (currentQuestion < totalQuestions) {
           feedbackEl.textContent = "";
-          bubblePositions.length = 0; // 清空位置
           generateQuestion();
         } else {
           feedbackEl.textContent = "恭喜全部答對！";
@@ -213,13 +218,12 @@
     retryBtn.addEventListener("click", () => {
       currentQuestion = 0;
       feedbackEl.textContent = "";
-      bubblePositions.length = 0;
       endButtons.classList.add("hidden");
       generateQuestion();
     });
 
     backBtn.addEventListener("click", () => {
-      window.location.href = "#"; // 可改成九九乘法表頁面
+      window.location.href = "#"; // 修改為九九乘法表頁面
     });
 
     generateQuestion();
