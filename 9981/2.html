@@ -7,7 +7,7 @@
   body {
     font-family: "Microsoft JhengHei", sans-serif;
     text-align: center;
-    background: #e0f7fa;
+    background: #fff;
   }
   h1 {
     font-size: 48px;
@@ -15,33 +15,31 @@
   }
   #question {
     font-size: 40px;
-    margin: 30px 0;
+    margin: 20px 0;
+  }
+  #bubbles {
+    position: relative;
+    width: 100%;
+    height: 400px;
+    margin: 20px 0;
   }
   .bubble {
-    display: inline-block;
-    margin: 15px;
-    padding: 20px 30px;
+    position: absolute;
+    border: 2px solid #000;
     border-radius: 50%;
-    background: #80deea;
-    font-size: 32px;
+    background: #fff;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.3s ease;
-    position: relative;
-  }
-  .bubble.correct {
-    animation: pop 0.5s ease forwards;
-    background: #ffcc80;
-  }
-  @keyframes pop {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.5); opacity: 1; }
-    100% { transform: scale(0); opacity: 0; }
+    font-weight: bold;
   }
   #message {
     font-size: 36px;
     color: #f44336;
-    margin: 20px 0;
     height: 50px;
+    margin: 20px 0;
   }
   button {
     font-size: 28px;
@@ -55,30 +53,32 @@
 
 <h1>乘法2泡泡遊戲</h1>
 <div id="question"></div>
+<button onclick="speakQuestion()">🔊 播放題目</button>
 <div id="bubbles"></div>
 <div id="message"></div>
-<button id="retryBtn" style="display:none;">重新挑戰</button>
-<button id="tableBtn" onclick="location.href='#'">回到九九乘法表練習</button>
+<button id="restartBtn" style="display:none;">重新開始</button>
 
 <script>
 let currentQuestion = 0;
 let correctAnswers = 0;
 const totalQuestions = 9;
 
+// 生成隨機題目
 function getRandomQuestion() {
   const n = Math.floor(Math.random() * 9) + 1;
   return {question: `2 × ${n}`, answer: 2 * n};
 }
 
+// 隨機生成泡泡且不重疊
 function generateBubbles(correctAnswer) {
   const bubbles = [];
-  const count = Math.floor(Math.random() * 2) + 5; // 5~6 個泡泡
+  const count = Math.floor(Math.random() * 2) + 5; // 5~6個
   const used = new Set();
   used.add(correctAnswer);
-
   bubbles.push(correctAnswer);
+
   while (bubbles.length < count) {
-    let offset = Math.floor(Math.random() * 3) + 1; // ±1~3
+    let offset = Math.floor(Math.random() * 3) + 1;
     let choice = Math.random() < 0.5 ? correctAnswer + offset : correctAnswer - offset;
     if (choice > 0 && !used.has(choice)) {
       bubbles.push(choice);
@@ -91,53 +91,94 @@ function generateBubbles(correctAnswer) {
   return bubbles;
 }
 
+// 檢查泡泡是否重疊
+function isOverlapping(x, y, size, bubbles) {
+  for (let b of bubbles) {
+    const dx = x - b.x;
+    const dy = y - b.y;
+    const distance = Math.sqrt(dx*dx + dy*dy);
+    if (distance < (size/2 + b.size/2 + 10)) return true;
+  }
+  return false;
+}
+
 function showQuestion() {
   const q = getRandomQuestion();
   window.currentAnswer = q.answer;
   document.getElementById("question").textContent = q.question;
   const bubblesDiv = document.getElementById("bubbles");
   bubblesDiv.innerHTML = "";
+  const messageDiv = document.getElementById("message");
+  messageDiv.textContent = "";
 
-  const bubbles = generateBubbles(q.answer);
-  bubbles.forEach(num => {
+  const bubblesData = generateBubbles(q.answer);
+  const createdBubbles = [];
+
+  bubblesData.forEach(num => {
     const bubble = document.createElement("div");
     bubble.className = "bubble";
-    bubble.style.fontSize = `${30 + Math.random()*10}px`;
-    bubble.style.width = `${60 + Math.random()*20}px`;
-    bubble.style.height = `${60 + Math.random()*20}px`;
+    // 隨機大小
+    const size = Math.floor(Math.random() * 50) + 80; // 80~130px
+    bubble.style.width = `${size}px`;
+    bubble.style.height = `${size}px`;
+    bubble.style.fontSize = `${Math.floor(size/2.5)}px`;
+
+    // 隨機位置且不重疊
+    let x, y, tries = 0;
+    do {
+      x = Math.random() * (bubblesDiv.clientWidth - size);
+      y = Math.random() * (bubblesDiv.clientHeight - size);
+      tries++;
+    } while (isOverlapping(x, y, size, createdBubbles) && tries < 100);
+
+    bubble.style.left = `${x}px`;
+    bubble.style.top = `${y}px`;
+
+    createdBubbles.push({x, y, size});
+
     bubble.textContent = num;
     bubble.onclick = () => checkAnswer(num, bubble);
     bubblesDiv.appendChild(bubble);
   });
-  document.getElementById("message").textContent = "";
 }
 
 function checkAnswer(selected, bubble) {
+  const messageDiv = document.getElementById("message");
   if (selected === window.currentAnswer) {
-    bubble.classList.add("correct");
-    document.getElementById("message").textContent = "答對了！";
+    messageDiv.style.color = "green";
+    messageDiv.textContent = "答對！";
     correctAnswers++;
     setTimeout(() => {
       currentQuestion++;
       if (currentQuestion < totalQuestions) {
         showQuestion();
       } else {
-        document.getElementById("question").textContent = "恭喜全部答對！";
+        document.getElementById("question").textContent = "恭喜🎉全部答對！";
         document.getElementById("bubbles").innerHTML = "";
-        document.getElementById("retryBtn").style.display = "inline-block";
+        document.getElementById("restartBtn").style.display = "inline-block";
+        messageDiv.textContent = "";
       }
     }, 700);
   } else {
-    bubble.style.background = "#e57373";
+    messageDiv.style.color = "#f44336";
+    messageDiv.textContent = "答錯！";
     bubble.style.transform = "scale(0.8)";
+    bubble.style.background = "#ffcdd2";
   }
 }
 
-document.getElementById("retryBtn").onclick = () => {
+document.getElementById("restartBtn").onclick = () => {
   currentQuestion = 0;
   correctAnswers = 0;
-  document.getElementById("retryBtn").style.display = "none";
+  document.getElementById("restartBtn").style.display = "none";
   showQuestion();
+}
+
+// 語音播放題目
+function speakQuestion() {
+  const msg = new SpeechSynthesisUtterance(document.getElementById("question").textContent);
+  msg.lang = "zh-TW";
+  window.speechSynthesis.speak(msg);
 }
 
 // 初始化
