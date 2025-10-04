@@ -1,1 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>乘法7泡泡遊戲</title>
+<style>
+  body {
+    font-family: "Microsoft JhengHei", sans-serif;
+    text-align: center;
+    background: #fff;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    font-size: 44px;
+    margin: 6px 0 12px;
+  }
+  #question {
+    font-size: 72px;
+    margin: 12px 0 8px;
+    font-weight: 700;
+  }
+  #bubbles {
+    position: relative;
+    width: 100%;
+    height: 480px;
+    margin: 12px 0 18px;
+    border-radius: 8px;
+    user-select: none;
+    overflow: hidden;
+  }
+  .bubble {
+    position: absolute;
+    border: 2px solid #000;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s ease, opacity 0.4s ease, background 0.25s ease;
+    font-weight: 800;
+    box-sizing: border-box;
+  }
+  .bubble.wrong {
+    animation: bubble-burst 400ms forwards;
+  }
+  @keyframes bubble-burst {
+    0% { transform: scale(1); opacity: 1; }
+    60% { transform: scale(1.25); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  .bubble.correct {
+    animation: bubble-pop 500ms forwards;
+  }
+  @keyframes bubble-pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+  #message {
+    font-size: 32px;
+    height: 44px;
+    margin-bottom: 10px;
+    color: #f44336;
+    font-weight: 700;
+  }
+  .controls {
+    margin-top: 6px;
+  }
+  button {
+    font-size: 20px;
+    margin: 8px;
+    padding: 10px 18px;
+    cursor: pointer;
+    border: none;
+    color: #000;
+    border-radius: 10px;
+  }
+  #startBtn { background-color: #ffeb3b; } /* 黃色 */
+  #restartBtn { background-color: #b2fab4; } /* 淡綠 */
+  #tableBtn { background-color: #b3e5fc; }   /* 淡藍 */
+  @media (max-width: 420px) {
+    #question { font-size: 52px; }
+    #bubbles { height: 360px; }
+    button { font-size: 18px; padding: 8px 14px; }
+  }
+</style>
+</head>
+<body>
 
+<h1>乘法7泡泡遊戲</h1>
+
+<div id="startContainer">
+  <button id="startBtn" aria-label="開始遊戲">開始遊戲</button>
+</div>
+
+<div id="gameContainer" style="display:none;">
+  <div id="question" aria-live="polite"></div>
+  <div id="bubbles" aria-hidden="false"></div>
+  <div id="message" role="status" aria-live="assertive"></div>
+
+  <div class="controls">
+    <button id="restartBtn">重新開始</button>
+    <button id="tableBtn" onclick="location.href='https://guaelves.github.io/Math/9981/'">回到九九乘法表練習</button>
+  </div>
+</div>
+
+<script>
+let currentQuestion = 0;
+let correctAnswers = 0;
+const totalQuestions = 9;
+
+function getRandomQuestion() {
+  const n = Math.floor(Math.random() * 9) + 1; // 1..9
+  return { question: `7 × ${n}`, answer: 7 * n };
+}
+
+function generateBubbles(correctAnswer) {
+  const bubbles = [];
+  const count = Math.floor(Math.random() * 2) + 5; // 5~6個泡泡
+  const used = new Set([correctAnswer]);
+  bubbles.push(correctAnswer);
+  let attempts = 0;
+  while (bubbles.length < count && attempts < 100) {
+    attempts++;
+    const offset = Math.floor(Math.random() * 3) + 1;
+    let choice = Math.random() < 0.5 ? correctAnswer + offset : correctAnswer - offset;
+    if (choice < 1) choice = correctAnswer + offset;
+    if (!used.has(choice)) {
+      used.add(choice);
+      bubbles.push(choice);
+    }
+  }
+  bubbles.sort(() => Math.random() - 0.5);
+  return bubbles;
+}
+
+function isOverlapping(x, y, size, placed) {
+  for (const b of placed) {
+    const dx = x - b.x, dy = y - b.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < (size / 2 + b.size / 2 + 8)) return true;
+  }
+  return false;
+}
+
+function randomPastel() {
+  const r = Math.floor(160 + Math.random() * 80);
+  const g = Math.floor(160 + Math.random() * 80);
+  const b = Math.floor(160 + Math.random() * 80);
+  return `rgb(${r},${g},${b})`;
+}
+
+function showQuestion() {
+  const q = getRandomQuestion();
+  window.currentAnswer = q.answer;
+  document.getElementById('question').textContent = q.question;
+
+  if ('speechSynthesis' in window) {
+    const utter = new SpeechSynthesisUtterance(q.question);
+    utter.lang = 'zh-TW';
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utter);
+  }
+
+  const bubblesDiv = document.getElementById('bubbles');
+  bubblesDiv.innerHTML = '';
+  document.getElementById('message').textContent = '';
+
+  const bubbleNumbers = generateBubbles(q.answer);
+  const placed = [];
+
+  bubbleNumbers.forEach(num => {
+    const el = document.createElement('div');
+    el.className = 'bubble';
+    const size = Math.floor(Math.random() * 70) + 80;
+    el.style.width = `${size}px`;
+    el.style.height = `${size}px`;
+    el.style.fontSize = `${Math.floor(size / 2.2)}px`;
+
+    let x, y, tries = 0;
+    const containerW = bubblesDiv.clientWidth || 320;
+    const containerH = bubblesDiv.clientHeight || 320;
+    do {
+      x = Math.random() * (containerW - size);
+      y = Math.random() * (containerH - size);
+      tries++;
+    } while (isOverlapping(x + size/2, y + size/2, size, placed) && tries < 300);
+
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+
+    placed.push({ x: x + size/2, y: y + size/2, size });
+    el.textContent = num;
+    el.tabIndex = 0;
+    el.setAttribute('role','button');
+
+    el.addEventListener('click', () => handlePick(num, el), { once: true });
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handlePick(num, el); }
+    });
+
+    bubblesDiv.appendChild(el);
+  });
+}
+
+function handlePick(selected, el) {
+  const msgDiv = document.getElementById('message');
+  if (selected === window.currentAnswer) {
+    const color = randomPastel();
+    el.style.background = color;
+    el.classList.add('correct');
+    msgDiv.style.color = 'green';
+    msgDiv.textContent = '答對！';
+    correctAnswers++;
+    setTimeout(() => {
+      currentQuestion++;
+      if (currentQuestion < totalQuestions) {
+        showQuestion();
+      } else {
+        document.getElementById('question').textContent = '恭喜🎉全部答對！';
+        document.getElementById('bubbles').innerHTML = '';
+        msgDiv.textContent = '';
+      }
+    }, 700);
+  } else {
+    el.style.background = '#f44336';
+    el.classList.add('wrong');
+    msgDiv.style.color = '#f44336';
+    msgDiv.textContent = '答錯！';
+  }
+}
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  document.getElementById('startContainer').style.display = 'none';
+  document.getElementById('gameContainer').style.display = 'block';
+  currentQuestion = 0;
+  correctAnswers = 0;
+  showQuestion();
+});
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+  currentQuestion = 0;
+  correctAnswers = 0;
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  showQuestion();
+});
+</script>
+
+</body>
+</html>
