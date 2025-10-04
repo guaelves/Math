@@ -14,13 +14,13 @@
     margin-top: 20px;
   }
   #question {
-    font-size: 40px;
+    font-size: 48px;
     margin: 20px 0;
   }
   #bubbles {
     position: relative;
     width: 100%;
-    height: 400px;
+    height: 450px;
     margin: 20px 0;
   }
   .bubble {
@@ -63,16 +63,14 @@ let currentQuestion = 0;
 let correctAnswers = 0;
 const totalQuestions = 9;
 
-// 生成隨機題目
 function getRandomQuestion() {
   const n = Math.floor(Math.random() * 9) + 1;
   return {question: `2 × ${n}`, answer: 2 * n};
 }
 
-// 隨機生成泡泡且不重疊
 function generateBubbles(correctAnswer) {
   const bubbles = [];
-  const count = Math.floor(Math.random() * 2) + 5; // 5~6個
+  const count = Math.floor(Math.random() * 2) + 5; // 5~6個泡泡
   const used = new Set();
   used.add(correctAnswer);
   bubbles.push(correctAnswer);
@@ -86,12 +84,10 @@ function generateBubbles(correctAnswer) {
     }
   }
 
-  // 隨機打亂順序
   bubbles.sort(() => Math.random() - 0.5);
   return bubbles;
 }
 
-// 檢查泡泡是否重疊
 function isOverlapping(x, y, size, bubbles) {
   for (let b of bubbles) {
     const dx = x - b.x;
@@ -105,7 +101,9 @@ function isOverlapping(x, y, size, bubbles) {
 function showQuestion() {
   const q = getRandomQuestion();
   window.currentAnswer = q.answer;
-  document.getElementById("question").textContent = q.question;
+  const questionDiv = document.getElementById("question");
+  questionDiv.textContent = q.question;
+  speakQuestion(); // 題目語音自動播放
   const bubblesDiv = document.getElementById("bubbles");
   bubblesDiv.innerHTML = "";
   const messageDiv = document.getElementById("message");
@@ -117,11 +115,11 @@ function showQuestion() {
   bubblesData.forEach(num => {
     const bubble = document.createElement("div");
     bubble.className = "bubble";
-    // 隨機大小
-    const size = Math.floor(Math.random() * 50) + 80; // 80~130px
+    // 隨機大小 80~140
+    const size = Math.floor(Math.random() * 60) + 80;
     bubble.style.width = `${size}px`;
     bubble.style.height = `${size}px`;
-    bubble.style.fontSize = `${Math.floor(size/2.5)}px`;
+    bubble.style.fontSize = `${Math.floor(size / 2.2)}px`;
 
     // 隨機位置且不重疊
     let x, y, tries = 0;
@@ -129,7 +127,7 @@ function showQuestion() {
       x = Math.random() * (bubblesDiv.clientWidth - size);
       y = Math.random() * (bubblesDiv.clientHeight - size);
       tries++;
-    } while (isOverlapping(x, y, size, createdBubbles) && tries < 100);
+    } while (isOverlapping(x, y, size, createdBubbles) && tries < 200);
 
     bubble.style.left = `${x}px`;
     bubble.style.top = `${y}px`;
@@ -176,9 +174,13 @@ document.getElementById("restartBtn").onclick = () => {
 
 // 語音播放題目
 function speakQuestion() {
-  const msg = new SpeechSynthesisUtterance(document.getElementById("question").textContent);
-  msg.lang = "zh-TW";
-  window.speechSynthesis.speak(msg);
+  const questionText = document.getElementById("question").textContent;
+  if ('speechSynthesis' in window) {
+    const msg = new SpeechSynthesisUtterance(questionText);
+    msg.lang = "zh-TW";
+    window.speechSynthesis.cancel(); // 取消前一個語音
+    window.speechSynthesis.speak(msg);
+  }
 }
 
 // 初始化
