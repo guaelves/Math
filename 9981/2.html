@@ -51,6 +51,9 @@
     color: #000;
     border-radius: 8px;
   }
+  #startBtn {
+    background-color: #ffeb3b; /* 黃色 */
+  }
   #restartBtn {
     background-color: #b2fab4; /* 淡綠色 */
   }
@@ -62,12 +65,19 @@
 <body>
 
 <h1>乘法2泡泡遊戲</h1>
-<div id="question"></div>
-<div id="bubbles"></div>
-<div id="message"></div>
-<div>
-  <button id="restartBtn">重新開始</button>
-  <button id="tableBtn" onclick="location.href='https://guaelves.github.io/Math/9981/'">回到九九乘法表練習</button>
+
+<div id="startContainer">
+  <button id="startBtn">開始遊戲</button>
+</div>
+
+<div id="gameContainer" style="display:none;">
+  <div id="question"></div>
+  <div id="bubbles"></div>
+  <div id="message"></div>
+  <div>
+    <button id="restartBtn">重新開始</button>
+    <button id="tableBtn" onclick="location.href='https://guaelves.github.io/Math/9981/'">回到九九乘法表練習</button>
+  </div>
 </div>
 
 <script>
@@ -189,15 +199,21 @@ function checkAnswer(selected, bubble) {
   }
 }
 
+// 開始遊戲按鈕
+document.getElementById("startBtn").onclick = () => {
+  document.getElementById("startContainer").style.display = "none";
+  document.getElementById("gameContainer").style.display = "block";
+  currentQuestion = 0;
+  correctAnswers = 0;
+  showQuestion();
+}
+
 // 重新開始
 document.getElementById("restartBtn").onclick = () => {
   currentQuestion = 0;
   correctAnswers = 0;
   showQuestion();
 }
-
-// 載入頁面自動顯示第一題
-window.onload = showQuestion;
 </script>
 
 </body>
