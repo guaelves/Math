@@ -1,232 +1,148 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <title>乘法2泡泡遊戲</title>
-  <style>
-    body {
-      font-family: "Microsoft JhengHei", sans-serif;
-      background: #f0f8ff;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-      text-align: center;
-    }
-
-    .container {
-      padding: 20px;
-    }
-
-    h1 {
-      font-size: 36px;
-      margin-bottom: 20px;
-    }
-
-    #question {
-      font-size: 80px; /* 題目數字更大 */
-      margin-bottom: 30px;
-    }
-
-    #bubbles-area {
-      position: relative;
-      width: 100%;
-      height: 60vh;
-      margin: 0 auto 20px;
-    }
-
-    .bubble {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(135, 206, 250, 0.3); /* 初始透明 */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-weight: bold;
-      color: white;
-      border: 4px solid black; /* 黑框 */
-      cursor: pointer;
-      transition: all 0.3s;
-      user-select: none;
-    }
-
-    #feedback {
-      font-size: 36px;
-      height: 40px;
-      margin-bottom: 20px;
-      color: green;
-    }
-
-    #end-buttons button {
-      font-size: 28px;
-      padding: 10px 20px;
-      margin: 10px;
-    }
-
-    .hidden { display: none; }
-
-    .confetti {
-      position: absolute;
-      width: 15px;
-      height: 15px;
-      border-radius: 50%;
-      opacity: 0.9;
-      animation: floatUp 1s forwards;
-    }
-
-    @keyframes floatUp {
-      0% { transform: translate(0,0) scale(1); opacity:1; }
-      100% { transform: translate(var(--x), var(--y)) scale(0); opacity:0; }
-    }
-  </style>
+<meta charset="UTF-8">
+<title>乘法2泡泡遊戲</title>
+<style>
+  body {
+    font-family: "Microsoft JhengHei", sans-serif;
+    text-align: center;
+    background: #e0f7fa;
+  }
+  h1 {
+    font-size: 48px;
+    margin-top: 20px;
+  }
+  #question {
+    font-size: 40px;
+    margin: 30px 0;
+  }
+  .bubble {
+    display: inline-block;
+    margin: 15px;
+    padding: 20px 30px;
+    border-radius: 50%;
+    background: #80deea;
+    font-size: 32px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+  }
+  .bubble.correct {
+    animation: pop 0.5s ease forwards;
+    background: #ffcc80;
+  }
+  @keyframes pop {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  #message {
+    font-size: 36px;
+    color: #f44336;
+    margin: 20px 0;
+    height: 50px;
+  }
+  button {
+    font-size: 28px;
+    margin: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+</style>
 </head>
 <body>
-  <div class="container">
-    <h1>乘法2泡泡遊戲</h1>
-    <div id="question-area">
-      <p id="question">題目: </p>
-    </div>
-    <div id="bubbles-area"></div>
-    <p id="feedback"></p>
-    <div id="end-buttons" class="hidden">
-      <button id="retry-btn">重新開始</button>
-      <button id="back-btn">回到九九乘法表練習</button>
-    </div>
-  </div>
 
-  <script>
-    const questionEl = document.getElementById("question");
-    const bubblesArea = document.getElementById("bubbles-area");
-    const feedbackEl = document.getElementById("feedback");
-    const endButtons = document.getElementById("end-buttons");
-    const retryBtn = document.getElementById("retry-btn");
-    const backBtn = document.getElementById("back-btn");
+<h1>乘法2泡泡遊戲</h1>
+<div id="question"></div>
+<div id="bubbles"></div>
+<div id="message"></div>
+<button id="retryBtn" style="display:none;">重新挑戰</button>
+<button id="tableBtn" onclick="location.href='#'">回到九九乘法表練習</button>
 
-    let currentQuestion = 0;
-    const totalQuestions = 9;
-    const bubblePositions = [];
+<script>
+let currentQuestion = 0;
+let correctAnswers = 0;
+const totalQuestions = 9;
 
-    function speak(text) {
-      const utter = new SpeechSynthesisUtterance(text);
-      utter.lang = "zh-TW";
-      speechSynthesis.speak(utter);
+function getRandomQuestion() {
+  const n = Math.floor(Math.random() * 9) + 1;
+  return {question: `2 × ${n}`, answer: 2 * n};
+}
+
+function generateBubbles(correctAnswer) {
+  const bubbles = [];
+  const count = Math.floor(Math.random() * 2) + 5; // 5~6 個泡泡
+  const used = new Set();
+  used.add(correctAnswer);
+
+  bubbles.push(correctAnswer);
+  while (bubbles.length < count) {
+    let offset = Math.floor(Math.random() * 3) + 1; // ±1~3
+    let choice = Math.random() < 0.5 ? correctAnswer + offset : correctAnswer - offset;
+    if (choice > 0 && !used.has(choice)) {
+      bubbles.push(choice);
+      used.add(choice);
     }
+  }
 
-    function generateQuestion() {
-      const multiplier = 2;
-      const number = Math.floor(Math.random() * 9) + 1;
-      const answer = multiplier * number;
-      questionEl.textContent = `${multiplier} × ${number} = ?`;
-      speak(`${multiplier} 乘以 ${number}`);
-      generateBubbles(answer);
-    }
+  // 隨機打亂順序
+  bubbles.sort(() => Math.random() - 0.5);
+  return bubbles;
+}
 
-    function generateBubbles(answer) {
-      bubblesArea.innerHTML = "";
-      bubblePositions.length = 0;
-      let numbers = [answer];
+function showQuestion() {
+  const q = getRandomQuestion();
+  window.currentAnswer = q.answer;
+  document.getElementById("question").textContent = q.question;
+  const bubblesDiv = document.getElementById("bubbles");
+  bubblesDiv.innerHTML = "";
 
-      while (numbers.length < 5) {
-        let wrong = answer + Math.floor(Math.random() * 5 + 1);
-        if (Math.random() > 0.5) wrong = answer - Math.floor(Math.random() * 5 + 1);
-        if (wrong > 0 && !numbers.includes(wrong)) numbers.push(wrong);
-      }
+  const bubbles = generateBubbles(q.answer);
+  bubbles.forEach(num => {
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.style.fontSize = `${30 + Math.random()*10}px`;
+    bubble.style.width = `${60 + Math.random()*20}px`;
+    bubble.style.height = `${60 + Math.random()*20}px`;
+    bubble.textContent = num;
+    bubble.onclick = () => checkAnswer(num, bubble);
+    bubblesDiv.appendChild(bubble);
+  });
+  document.getElementById("message").textContent = "";
+}
 
-      numbers.sort(() => Math.random() - 0.5);
-
-      numbers.forEach(num => {
-        const bubble = document.createElement("div");
-        bubble.classList.add("bubble");
-        bubble.textContent = num;
-
-        // 隨機大小 60~100 px
-        const size = 60 + Math.random()*40;
-        bubble.style.width = `${size}px`;
-        bubble.style.height = `${size}px`;
-        bubble.style.fontSize = `${size*0.6}px`;
-
-        // 隨機位置
-        let left, top;
-        let attempts = 0;
-        do {
-          left = Math.random() * (bubblesArea.clientWidth - size);
-          top = Math.random() * (bubblesArea.clientHeight - size);
-          attempts++;
-        } while (checkOverlap(left, top, size) && attempts < 50);
-
-        bubble.style.left = `${left}px`;
-        bubble.style.top = `${top}px`;
-
-        bubble.addEventListener("click", () => handleClick(num, bubble));
-        bubble.addEventListener("click", () => speak(num.toString()));
-
-        bubblesArea.appendChild(bubble);
-      });
-    }
-
-    function checkOverlap(left, top, size) {
-      for (let pos of bubblePositions) {
-        const dx = pos.left - left;
-        const dy = pos.top - top;
-        const distance = Math.sqrt(dx*dx + dy*dy);
-        if (distance < (pos.size + size)/1.5) return true;
-      }
-      bubblePositions.push({left, top, size});
-      return false;
-    }
-
-    function createConfetti(bubble) {
-      for (let i = 0; i < 20; i++) {
-        const confetti = document.createElement("div");
-        confetti.classList.add("confetti");
-        confetti.style.background = `hsl(${Math.random()*360}, 70%, 60%)`;
-        confetti.style.left = `${bubble.offsetLeft + bubble.offsetWidth/2}px`;
-        confetti.style.top = `${bubble.offsetTop + bubble.offsetHeight/2}px`;
-        const x = (Math.random() - 0.5) * 200 + "px";
-        const y = -Math.random() * 200 + "px";
-        confetti.style.setProperty('--x', x);
-        confetti.style.setProperty('--y', y);
-        bubblesArea.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 1000);
-      }
-    }
-
-    function handleClick(selected, bubble) {
-      const correct = parseInt(questionEl.textContent.match(/\d+$/)[0]);
-      if (selected === correct) {
-        bubble.style.background = `hsl(${Math.random()*360},70%,60%)`;
-        createConfetti(bubble);
-        feedbackEl.textContent = "答對了！";
+function checkAnswer(selected, bubble) {
+  if (selected === window.currentAnswer) {
+    bubble.classList.add("correct");
+    document.getElementById("message").textContent = "答對了！";
+    correctAnswers++;
+    setTimeout(() => {
+      currentQuestion++;
+      if (currentQuestion < totalQuestions) {
+        showQuestion();
       } else {
-        bubble.style.background = "#f08080";
-        feedbackEl.textContent = "答錯了！";
+        document.getElementById("question").textContent = "恭喜全部答對！";
+        document.getElementById("bubbles").innerHTML = "";
+        document.getElementById("retryBtn").style.display = "inline-block";
       }
+    }, 700);
+  } else {
+    bubble.style.background = "#e57373";
+    bubble.style.transform = "scale(0.8)";
+  }
+}
 
-      // 下一題
-      setTimeout(() => {
-        currentQuestion++;
-        if (currentQuestion < totalQuestions) {
-          feedbackEl.textContent = "";
-          generateQuestion();
-        } else {
-          feedbackEl.textContent = "恭喜全部答對！";
-          bubblesArea.innerHTML = "";
-          endButtons.classList.remove("hidden");
-        }
-      }, 700);
-    }
+document.getElementById("retryBtn").onclick = () => {
+  currentQuestion = 0;
+  correctAnswers = 0;
+  document.getElementById("retryBtn").style.display = "none";
+  showQuestion();
+}
 
-    retryBtn.addEventListener("click", () => {
-      currentQuestion = 0;
-      feedbackEl.textContent = "";
-      endButtons.classList.add("hidden");
-      generateQuestion();
-    });
+// 初始化
+showQuestion();
+</script>
 
-    backBtn.addEventListener("click", () => {
-      window.location.href = "#"; // 修改為九九乘法表頁面
-    });
-
-    generateQuestion();
-  </script>
 </body>
 </html>
