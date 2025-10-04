@@ -14,8 +14,9 @@
     margin-top: 20px;
   }
   #question {
-    font-size: 48px;
+    font-size: 60px;
     margin: 20px 0;
+    font-weight: bold;
   }
   #bubbles {
     position: relative;
@@ -53,21 +54,25 @@
 
 <h1>乘法2泡泡遊戲</h1>
 <div id="question"></div>
-<button onclick="speakQuestion()">🔊 播放題目</button>
 <div id="bubbles"></div>
 <div id="message"></div>
-<button id="restartBtn" style="display:none;">重新開始</button>
+<div>
+  <button id="restartBtn">重新開始</button>
+  <button onclick="location.href='#'">回到九九乘法表練習</button>
+</div>
 
 <script>
 let currentQuestion = 0;
 let correctAnswers = 0;
 const totalQuestions = 9;
 
+// 產生隨機題目
 function getRandomQuestion() {
   const n = Math.floor(Math.random() * 9) + 1;
   return {question: `2 × ${n}`, answer: 2 * n};
 }
 
+// 產生泡泡
 function generateBubbles(correctAnswer) {
   const bubbles = [];
   const count = Math.floor(Math.random() * 2) + 5; // 5~6個泡泡
@@ -88,6 +93,7 @@ function generateBubbles(correctAnswer) {
   return bubbles;
 }
 
+// 檢查是否重疊
 function isOverlapping(x, y, size, bubbles) {
   for (let b of bubbles) {
     const dx = x - b.x;
@@ -98,12 +104,21 @@ function isOverlapping(x, y, size, bubbles) {
   return false;
 }
 
+// 顯示題目
 function showQuestion() {
   const q = getRandomQuestion();
   window.currentAnswer = q.answer;
   const questionDiv = document.getElementById("question");
   questionDiv.textContent = q.question;
-  speakQuestion(); // 題目語音自動播放
+
+  // 自動語音播放
+  if ('speechSynthesis' in window) {
+    const msg = new SpeechSynthesisUtterance(q.question);
+    msg.lang = "zh-TW";
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(msg);
+  }
+
   const bubblesDiv = document.getElementById("bubbles");
   bubblesDiv.innerHTML = "";
   const messageDiv = document.getElementById("message");
@@ -115,13 +130,12 @@ function showQuestion() {
   bubblesData.forEach(num => {
     const bubble = document.createElement("div");
     bubble.className = "bubble";
-    // 隨機大小 80~140
-    const size = Math.floor(Math.random() * 60) + 80;
+
+    const size = Math.floor(Math.random() * 60) + 80; // 80~140px
     bubble.style.width = `${size}px`;
     bubble.style.height = `${size}px`;
     bubble.style.fontSize = `${Math.floor(size / 2.2)}px`;
 
-    // 隨機位置且不重疊
     let x, y, tries = 0;
     do {
       x = Math.random() * (bubblesDiv.clientWidth - size);
@@ -133,18 +147,19 @@ function showQuestion() {
     bubble.style.top = `${y}px`;
 
     createdBubbles.push({x, y, size});
-
     bubble.textContent = num;
     bubble.onclick = () => checkAnswer(num, bubble);
     bubblesDiv.appendChild(bubble);
   });
 }
 
+// 檢查答案
 function checkAnswer(selected, bubble) {
   const messageDiv = document.getElementById("message");
   if (selected === window.currentAnswer) {
     messageDiv.style.color = "green";
     messageDiv.textContent = "答對！";
+    bubble.style.background = "#90ee90"; // 答對變綠色
     correctAnswers++;
     setTimeout(() => {
       currentQuestion++;
@@ -153,34 +168,23 @@ function checkAnswer(selected, bubble) {
       } else {
         document.getElementById("question").textContent = "恭喜🎉全部答對！";
         document.getElementById("bubbles").innerHTML = "";
-        document.getElementById("restartBtn").style.display = "inline-block";
         messageDiv.textContent = "";
       }
     }, 700);
   } else {
     messageDiv.style.color = "#f44336";
     messageDiv.textContent = "答錯！";
-    bubble.style.transform = "scale(0.8)";
-    bubble.style.background = "#ffcdd2";
+    bubble.style.background = "#f44336"; // 紅色
+    bubble.style.transform = "scale(0)";
+    bubble.style.opacity = "0";
   }
 }
 
+// 重新開始
 document.getElementById("restartBtn").onclick = () => {
   currentQuestion = 0;
   correctAnswers = 0;
-  document.getElementById("restartBtn").style.display = "none";
   showQuestion();
-}
-
-// 語音播放題目
-function speakQuestion() {
-  const questionText = document.getElementById("question").textContent;
-  if ('speechSynthesis' in window) {
-    const msg = new SpeechSynthesisUtterance(questionText);
-    msg.lang = "zh-TW";
-    window.speechSynthesis.cancel(); // 取消前一個語音
-    window.speechSynthesis.speak(msg);
-  }
 }
 
 // 初始化
