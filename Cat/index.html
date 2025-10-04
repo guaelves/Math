@@ -1,1 +1,93 @@
+<div style="text-align:center;">
+  <h1>貓咪數學遊戲 😺</h1>
+  <div id="score">分數：0</div>
+  <div id="timer">時間：15</div>
+  <p id="question">問題會出現在這裡</p>
+  <input type="number" id="answer" placeholder="答案">
+  <button onclick="checkAnswer()">確認</button>
+  <div>
+    <img id="catFace" src="cat_neutral.png" width="150">
+  </div>
+  <div id="effects"></div> <!-- 特效容器 -->
+</div>
 
+<style>
+#catFace { transition: 0.3s; }
+.happy { animation: jump 0.5s; }
+.angry { animation: shake 0.5s; }
+@keyframes jump { 0% {transform:translateY(0);} 50% {transform:translateY(-20px);} 100% {transform:translateY(0);} }
+@keyframes shake { 0%{transform:translateX(0);} 25%{transform:translateX(-10px);} 50%{transform:translateX(10px);} 75%{transform:translateX(-10px);} 100%{transform:translateX(0);} }
+.star { position:absolute; width:20px; animation: sparkle 1s ease-out; }
+@keyframes sparkle { 0%{opacity:1;transform:scale(1);} 100%{opacity:0;transform:scale(2);}}
+</style>
+
+<script>
+let score=0, correctAnswer=0, timer=15, timerInterval;
+
+function generateQuestion(){
+  const num1=Math.floor(Math.random()*10)+1;
+  const num2=Math.floor(Math.random()*10)+1;
+  const operators=['+','-','*'];
+  const op=operators[Math.floor(Math.random()*operators.length)];
+  correctAnswer=op==='+'?num1+num2:op==='-'?num1-num2:num1*num2;
+  document.getElementById('question').textContent=`${num1} ${op} ${num2} = ?`;
+  document.getElementById('answer').value='';
+  resetTimer();
+  document.getElementById('catFace').src='cat_neutral.png';
+}
+
+function checkAnswer(){
+  const userAnswer=Number(document.getElementById('answer').value);
+  const catFace=document.getElementById('catFace');
+  clearInterval(timerInterval);
+
+  if(userAnswer===correctAnswer){
+    score+=1;
+    catFace.src='cat_happy.png';
+    catFace.classList.add('happy');
+    spawnStars(); // 特效
+    setTimeout(()=>catFace.classList.remove('happy'),500);
+  } else {
+    score=Math.max(0,score-1);
+    catFace.src='cat_angry.png';
+    catFace.classList.add('angry');
+    setTimeout(()=>catFace.classList.remove('angry'),500);
+  }
+
+  document.getElementById('score').textContent=`分數：${score}`;
+  generateQuestion();
+}
+
+function resetTimer(){
+  timer=15;
+  document.getElementById('timer').textContent=`時間：${timer}`;
+  clearInterval(timerInterval);
+  timerInterval=setInterval(()=>{
+    timer--;
+    document.getElementById('timer').textContent=`時間：${timer}`;
+    if(timer<=0){
+      clearInterval(timerInterval);
+      score=Math.max(0,score-1);
+      document.getElementById('score').textContent=`分數：${score}`;
+      const catFace=document.getElementById('catFace');
+      catFace.src='cat_tired.png';
+      catFace.classList.add('angry');
+      setTimeout(()=>catFace.classList.remove('angry'),500);
+      generateQuestion();
+    }
+  },1000);
+}
+
+function spawnStars(){
+  for(let i=0;i<5;i++){
+    const star=document.createElement('div');
+    star.classList.add('star');
+    star.style.left=100 + Math.random()*200+'px';
+    star.style.top=50 + Math.random()*100+'px';
+    document.getElementById('effects').appendChild(star);
+    setTimeout(()=>star.remove(),1000);
+  }
+}
+
+generateQuestion();
+</script>
