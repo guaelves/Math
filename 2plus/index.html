@@ -23,14 +23,13 @@
       margin-bottom: 20px;
     }
 
-    /* 🐝 蜂巢排列設定（每行 3～4 個） */
+    /* 🐝 蜂巢排列設定：5列 × 4行 */
     #game-board {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(5, 130px);
+      gap: 15px;
       justify-content: center;
-      gap: 8px; /* 間距縮小 */
-      max-width: 480px;
-      margin: 0 auto 30px;
+      margin-bottom: 30px;
     }
 
     /* 🟡 六角形格子樣式 */
@@ -51,7 +50,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 40px; /* 數字放大 */
+      font-size: 40px;
       cursor: pointer;
       transition: all 0.2s;
       user-select: none;
@@ -62,17 +61,18 @@
     }
 
     .correct {
-      background-color: #ffeb3b; /* 黃色 */
+      background-color: #ffeb3b;
       color: #000;
       border-color: #fdd835;
     }
 
     .wrong {
-      background-color: #f44336; /* 紅色 */
+      background-color: #f44336;
       color: #fff;
       border-color: #d32f2f;
     }
 
+    /* 🐝 錯位效果（偶數行往右移） */
     .offset {
       margin-left: 65px;
     }
@@ -92,6 +92,7 @@
       background: #45a049;
     }
 
+    /* 🎉 全部答對訊息 */
     #message {
       font-size: 32px;
       color: #ff9800;
@@ -99,9 +100,20 @@
       display: none;
     }
 
+    /* 🐝 飛行蜜蜂動畫 */
     #bee {
       font-size: 48px;
-      margin-left: 10px;
+      display: inline-block;
+      animation: fly 2s infinite ease-in-out;
+      transform-origin: center;
+    }
+
+    @keyframes fly {
+      0%   { transform: translateY(0) rotate(0deg); }
+      25%  { transform: translateY(-10px) rotate(5deg); }
+      50%  { transform: translateY(0) rotate(0deg); }
+      75%  { transform: translateY(10px) rotate(-5deg); }
+      100% { transform: translateY(0) rotate(0deg); }
     }
   </style>
 </head>
@@ -110,7 +122,7 @@
   <div id="score">目前答對：0 格</div>
   <div id="game-board"></div>
   <button onclick="startGame()">重新開始遊戲</button>
-  <div id="message">🎉 恭喜全部答對了！<span id="bee">🐝</span></div>
+  <div id="message">🎉 恭喜全部答對了！ <span id="bee">🐝</span></div>
 
   <!-- ✅ 音效 -->
   <audio id="correct-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
@@ -136,7 +148,7 @@
       const totalCells = 20;
       const numbers = [];
 
-      // 隨機生成數字 & 計算有幾個偶數
+      // 生成隨機數字並統計偶數總數
       for (let i = 0; i < totalCells; i++) {
         const num = Math.floor(Math.random() * 99) + 1;
         numbers.push(num);
@@ -156,13 +168,12 @@
             score++;
             updateScore();
 
-            // 🐝 全部答對時顯示訊息
+            // 🎉 全部答對時顯示訊息
             if (score === totalEven) {
               setTimeout(() => {
                 message.style.display = "block";
-              }, 300);
+              }, 400);
             }
-
           } else {
             cell.classList.add("wrong");
             wrongSound.currentTime = 0;
@@ -171,7 +182,8 @@
           cell.style.pointerEvents = "none";
         });
 
-        if (Math.floor(i / 4) % 2 === 1) {
+        // 每兩行錯開
+        if (Math.floor(i / 5) % 2 === 1) {
           cell.classList.add("offset");
         }
 
