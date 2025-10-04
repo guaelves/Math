@@ -91,7 +91,7 @@ function getRandomQuestion() {
   return {question: `2 × ${n}`, answer: 2 * n};
 }
 
-// 產生泡泡
+// 產生泡泡，修正小數字卡住問題
 function generateBubbles(correctAnswer) {
   const bubbles = [];
   const count = Math.floor(Math.random() * 2) + 5; // 5~6個泡泡
@@ -100,9 +100,16 @@ function generateBubbles(correctAnswer) {
   bubbles.push(correctAnswer);
 
   while (bubbles.length < count) {
-    let offset = Math.floor(Math.random() * 3) + 1;
-    let choice = Math.random() < 0.5 ? correctAnswer + offset : correctAnswer - offset;
-    if (choice > 0 && !used.has(choice)) {
+    let offset = Math.floor(Math.random() * 3) + 1; // 1~3
+    let choice;
+    if (correctAnswer <= 3) {
+      // 小數字只往上加，避免負數
+      choice = correctAnswer + offset;
+    } else {
+      choice = Math.random() < 0.5 ? correctAnswer + offset : correctAnswer - offset;
+      if (choice < 1) choice = correctAnswer + offset;
+    }
+    if (!used.has(choice)) {
       bubbles.push(choice);
       used.add(choice);
     }
