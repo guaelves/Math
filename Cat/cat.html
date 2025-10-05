@@ -1,1 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>貓咪填色遊戲</title>
+<style>
+  body {
+    font-family: "Microsoft JhengHei", sans-serif;
+    background: #f0f0f0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 20px;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  #gameContainer {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  #catCanvas {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    grid-template-rows: repeat(4, 60px);
+    gap: 3px;
+    background: #ccc;
+    padding: 5px;
+    border-radius: 10px;
+  }
+  .cell {
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .cell:hover {
+    transform: scale(1.05);
+  }
+  #palette {
+    display: grid;
+    grid-template-columns: repeat(5, 40px);
+    grid-template-rows: repeat(4, 40px);
+    gap: 5px;
+  }
+  .color {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    cursor: grab;
+    border: 2px solid #999;
+    transition: transform 0.1s;
+  }
+  .color:hover {
+    transform: scale(1.1);
+  }
+  .selected {
+    border: 3px solid black;
+  }
+</style>
+</head>
+<body>
+  <h1>🐱 貓咪填色遊戲</h1>
+  <div id="gameContainer">
+    <div id="palette"></div>
+    <div id="catCanvas"></div>
+  </div>
+
+<script>
+  // 🎨 產生 20 種顏色
+  const colors = [
+    "#FF6666","#FFB266","#FFFF66","#B2FF66","#66FFB2",
+    "#66FFFF","#66B2FF","#6666FF","#B266FF","#FF66FF",
+    "#FF9999","#FFD699","#FFFF99","#D6FF99","#99FFD6",
+    "#99FFFF","#99D6FF","#9999FF","#D699FF","#FF99FF"
+  ];
+
+  const palette = document.getElementById("palette");
+  const catCanvas = document.getElementById("catCanvas");
+  let selectedColor = null;
+
+  // 🎨 建立顏色盤
+  colors.forEach(c => {
+    const colorDiv = document.createElement("div");
+    colorDiv.classList.add("color");
+    colorDiv.style.background = c;
+    colorDiv.addEventListener("click", () => {
+      document.querySelectorAll(".color").forEach(el => el.classList.remove("selected"));
+      colorDiv.classList.add("selected");
+      selectedColor = c;
+    });
+    palette.appendChild(colorDiv);
+  });
+
+  // 🐱 建立貓咪區塊（20格）
+  for (let i = 0; i < 20; i++) {
+    const cell = document.createElement("div");
+    cell.classList.add("cell");
+    cell.dataset.index = i;
+    cell.addEventListener("click", () => {
+      if (selectedColor) {
+        cell.style.background = selectedColor;
+      }
+    });
+    catCanvas.appendChild(cell);
+  }
+</script>
+</body>
+</html>
 
