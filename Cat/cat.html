@@ -1,114 +1,248 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<title>貓咪填色遊戲</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Q 版貓咪 SVG 填色遊戲</title>
 <style>
-  body {
-    font-family: "Microsoft JhengHei", sans-serif;
-    background: #f0f0f0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 20px;
-  }
-  h1 {
-    margin-bottom: 10px;
-  }
-  #gameContainer {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  #catCanvas {
-    display: grid;
-    grid-template-columns: repeat(5, 60px);
-    grid-template-rows: repeat(4, 60px);
-    gap: 3px;
-    background: #ccc;
-    padding: 5px;
-    border-radius: 10px;
-  }
-  .cell {
-    width: 60px;
-    height: 60px;
-    background: white;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: transform 0.1s;
-  }
-  .cell:hover {
-    transform: scale(1.05);
-  }
-  #palette {
-    display: grid;
-    grid-template-columns: repeat(5, 40px);
-    grid-template-rows: repeat(4, 40px);
-    gap: 5px;
-  }
-  .color {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-    cursor: grab;
-    border: 2px solid #999;
-    transition: transform 0.1s;
-  }
-  .color:hover {
-    transform: scale(1.1);
-  }
-  .selected {
-    border: 3px solid black;
-  }
+  :root{--bg:#f6f7fb;--card:#ffffff;--muted:#666;}
+  body{font-family:"Microsoft JhengHei",system-ui,Arial; background:var(--bg); margin:20px; display:flex; gap:20px; justify-content:center; align-items:flex-start;}
+  .card{background:var(--card); padding:14px; border-radius:12px; box-shadow:0 6px 18px rgba(20,20,40,0.08);}
+  h1{margin:0 0 8px 0; font-size:20px;}
+  #layout{display:flex; gap:18px; align-items:flex-start;}
+  #palette{display:grid; grid-template-columns:repeat(5,36px); gap:8px; padding:6px;}
+  .swatch{width:36px;height:36px;border-radius:8px;border:2px solid rgba(0,0,0,0.12); cursor:grab; box-sizing:border-box;}
+  .swatch.selected{outline:3px solid #111; outline-offset:2px;}
+  #svgWrap{width:520px; height:520px; display:flex; align-items:center; justify-content:center;}
+  svg{width:480px;height:480px;}
+  .seg{cursor:pointer; stroke:#333; stroke-width:2; stroke-linejoin:round; fill:#fff;}
+  .seg:hover{filter:brightness(.95) drop-shadow(0 2px 6px rgba(0,0,0,0.08)); transform-origin:center;}
+  .controls{display:flex; gap:8px; margin-top:10px;}
+  button{padding:8px 12px;border-radius:8px;border:1px solid rgba(0,0,0,0.08); background:white; cursor:pointer;}
+  .hint{color:var(--muted); font-size:13px; margin-top:6px;}
+  .tools{display:flex; flex-direction:column; gap:8px;}
 </style>
 </head>
 <body>
-  <h1>🐱 貓咪填色遊戲</h1>
-  <div id="gameContainer">
-    <div id="palette"></div>
-    <div id="catCanvas"></div>
+  <div class="card">
+    <h1>🐱 Q 版貓咪 — 填色遊戲（SVG）</h1>
+    <div style="display:flex; gap:14px; align-items:center;">
+      <div class="tools">
+        <div id="palette" title="點選或拖曳顏色到圖案上"></div>
+        <div class="controls">
+          <button id="resetBtn">重置</button>
+          <button id="downloadBtn">下載 PNG</button>
+        </div>
+        <div class="hint">操作：<strong>點選顏色 → 點圖上色</strong> 或 <strong>拖曳顏色到圖上放下</strong></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="svgCard">
+    <div id="svgWrap">
+      <!-- 可填色的 Q 版 貓咪 SVG（20 個 segment） -->
+      <svg id="catSvg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" >
+        <!-- 背景輪廓（只做邊線） -->
+        <!-- 1 左耳 -->
+        <path id="seg0" class="seg" d="M120 70 L150 30 L170 72 Q150 65 120 70 Z" />
+        <!-- 2 右耳 -->
+        <path id="seg1" class="seg" d="M280 72 L310 30 L330 70 Q300 65 280 72 Z" />
+        <!-- 3 前額 -->
+        <path id="seg2" class="seg" d="M150 72 Q200 30 250 72 Q200 60 150 72 Z" />
+        <!-- 4 左臉頰 -->
+        <path id="seg3" class="seg" d="M100 120 Q140 100 160 150 Q140 170 110 160 Q98 145 100 120 Z" />
+        <!-- 5 右臉頰 -->
+        <path id="seg4" class="seg" d="M300 120 Q260 100 240 150 Q260 170 290 160 Q312 145 300 120 Z" />
+        <!-- 6 鼻子區 -->
+        <path id="seg5" class="seg" d="M190 150 Q200 165 210 150 Q200 155 190 150 Z" />
+        <!-- 7 嘴巴下方小區塊 -->
+        <path id="seg6" class="seg" d="M180 165 Q200 180 220 165 Q200 175 180 165 Z" />
+        <!-- 8 左眼 -->
+        <path id="seg7" class="seg" d="M160 130 Q175 120 190 128 Q175 135 160 130 Z" />
+        <!-- 9 右眼 -->
+        <path id="seg8" class="seg" d="M210 128 Q225 120 240 130 Q225 135 210 128 Z" />
+        <!-- 10 身體上半 -->
+        <path id="seg9" class="seg" d="M120 200 Q200 170 280 200 Q288 240 250 260 Q200 290 150 260 Q120 240 120 200 Z" />
+        <!-- 11 身體中段 -->
+        <path id="seg10" class="seg" d="M140 260 Q200 290 260 260 Q260 300 200 330 Q140 300 140 260 Z" />
+        <!-- 12 肚皮 -->
+        <path id="seg11" class="seg" d="M170 260 Q200 300 230 260 Q210 285 200 305 Q190 285 170 260 Z" />
+        <!-- 13 左前腳 -->
+        <path id="seg12" class="seg" d="M150 320 Q160 350 180 345 Q170 330 150 320 Z" />
+        <!-- 14 右前腳 -->
+        <path id="seg13" class="seg" d="M220 345 Q240 350 250 320 Q235 330 220 345 Z" />
+        <!-- 15 尾巴段1 -->
+        <path id="seg14" class="seg" d="M280 210 Q320 200 340 220 Q320 230 300 230 Q290 225 280 210 Z" />
+        <!-- 16 尾巴段2 -->
+        <path id="seg15" class="seg" d="M300 220 Q340 240 350 270 Q330 270 320 255 Q310 240 300 220 Z" />
+        <!-- 17 背部上方 -->
+        <path id="seg16" class="seg" d="M150 180 Q200 160 250 180 Q230 185 200 180 Q170 185 150 180 Z" />
+        <!-- 18 左臉腮紅 -->
+        <path id="seg17" class="seg" d="M130 150 Q145 148 150 160 Q140 162 130 150 Z" />
+        <!-- 19 右臉腮紅 -->
+        <path id="seg18" class="seg" d="M270 150 Q255 148 250 160 Q260 162 270 150 Z" />
+        <!-- 20 背後斑紋 -->
+        <path id="seg19" class="seg" d="M180 210 Q200 205 220 210 Q205 215 180 210 Z" />
+
+        <!-- 線條（輪廓）覆蓋，讓線條較黑清晰 -->
+        <g stroke="#333" stroke-width="3" fill="none">
+          <path d="M120 70 L150 30 L170 72 Q200 40 230 72 L250 72 L310 30 L330 70" />
+          <path d="M100 120 Q120 90 150 72" />
+          <path d="M300 120 Q280 90 250 72" />
+          <path d="M120 200 Q140 180 150 180 Q200 160 250 180 Q260 190 280 200 Q288 240 250 260 Q200 290 150 260 Q120 240 120 200 Z" />
+          <path d="M280 210 Q320 200 350 270" />
+        </g>
+      </svg>
+    </div>
   </div>
 
 <script>
-  // 🎨 產生 20 種顏色
+  // 20 顏色（可自行更換）
   const colors = [
-    "#FF6666","#FFB266","#FFFF66","#B2FF66","#66FFB2",
-    "#66FFFF","#66B2FF","#6666FF","#B266FF","#FF66FF",
-    "#FF9999","#FFD699","#FFFF99","#D6FF99","#99FFD6",
-    "#99FFFF","#99D6FF","#9999FF","#D699FF","#FF99FF"
+    "#FF6B6B","#FF9F43","#FFD93D","#6BCB77","#4D96FF",
+    "#845EC2","#FF6FCF","#FFB3BA","#FFA07A","#FFF5BA",
+    "#B4F8C8","#C9EEFF","#A0E7E5","#BDB2FF","#FFC6FF",
+    "#FFDDC1","#D6E4FF","#FFD6A5","#E6E6FA","#F8E8D8"
   ];
 
-  const palette = document.getElementById("palette");
-  const catCanvas = document.getElementById("catCanvas");
+  const paletteEl = document.getElementById('palette');
+  const catSvg = document.getElementById('catSvg');
+  const segEls = Array.from(catSvg.querySelectorAll('.seg'));
   let selectedColor = null;
 
-  // 🎨 建立顏色盤
-  colors.forEach(c => {
-    const colorDiv = document.createElement("div");
-    colorDiv.classList.add("color");
-    colorDiv.style.background = c;
-    colorDiv.addEventListener("click", () => {
-      document.querySelectorAll(".color").forEach(el => el.classList.remove("selected"));
-      colorDiv.classList.add("selected");
+  // 建立顏色塊（支援拖放）
+  colors.forEach((c, idx) => {
+    const d = document.createElement('div');
+    d.className = 'swatch';
+    d.style.background = c;
+    d.draggable = true;
+    d.dataset.color = c;
+    // 點選選色
+    d.addEventListener('click', (e) => {
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+      d.classList.add('selected');
       selectedColor = c;
     });
-    palette.appendChild(colorDiv);
+    // 拖動開始
+    d.addEventListener('dragstart', (ev) => {
+      ev.dataTransfer.setData('text/plain', c);
+      // 讓拖動時也顯示選中狀態
+      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+      d.classList.add('selected');
+      selectedColor = c;
+    });
+    paletteEl.appendChild(d);
   });
 
-  // 🐱 建立貓咪區塊（20格）
-  for (let i = 0; i < 20; i++) {
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
-    cell.dataset.index = i;
-    cell.addEventListener("click", () => {
+  // 每個 SVG 區塊：點擊填色 & 支援拖放放下填色
+  segEls.forEach(seg => {
+    // 初始填色白
+    seg.style.fill = '#ffffff';
+
+    // 點擊上色（若已選色）
+    seg.addEventListener('click', () => {
       if (selectedColor) {
-        cell.style.background = selectedColor;
+        seg.style.fill = selectedColor;
+      } else {
+        // 若沒選色，提示暫時使用第一個顏色（輕微提示）
+        const fallback = colors[0];
+        seg.style.fill = fallback;
+        // 選中第一色視覺效果
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+        document.querySelectorAll('.swatch')[0].classList.add('selected');
+        selectedColor = fallback;
       }
     });
-    catCanvas.appendChild(cell);
-  }
+
+    // 拖放事件：允許放置
+    seg.addEventListener('dragover', (ev) => {
+      ev.preventDefault();
+      seg.style.filter = 'brightness(.95) drop-shadow(0 3px 8px rgba(0,0,0,0.12))';
+    });
+    seg.addEventListener('dragleave', (ev) => {
+      seg.style.filter = '';
+    });
+    seg.addEventListener('drop', (ev) => {
+      ev.preventDefault();
+      seg.style.filter = '';
+      const color = ev.dataTransfer.getData('text/plain');
+      if (color) {
+        seg.style.fill = color;
+        // 更新選色狀態
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+        const match = Array.from(document.querySelectorAll('.swatch')).find(s => s.dataset.color === color);
+        if (match) match.classList.add('selected');
+        selectedColor = color;
+      }
+    });
+  });
+
+  // Reset
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    segEls.forEach(s => s.style.fill = '#ffffff');
+    document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+    selectedColor = null;
+  });
+
+  // 下載 PNG（把 SVG 畫到 canvas）
+  document.getElementById('downloadBtn').addEventListener('click', async () => {
+    // 取得 SVG 字串
+    const serializer = new XMLSerializer();
+    const svgNode = catSvg.cloneNode(true);
+    // 移除 hover style 相關（保持線條可見）
+    svgNode.querySelectorAll('.seg').forEach(el => {
+      el.style.filter = '';
+      el.style.transform = '';
+    });
+    const svgString = '<?xml version="1.0" standalone="no"?>\n' + serializer.serializeToString(svgNode);
+    const blob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    // 設定跨來源（安全）
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const size = 1200; // 高解析度
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      // 白底
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0,0,canvas.width, canvas.height);
+      // 將 SVG 繪上
+      // 計算比例讓原始 viewBox(0..400) 放滿 canvas
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob((b) => {
+        const a = document.createElement('a');
+        a.download = 'qcat_coloring.png';
+        a.href = URL.createObjectURL(b);
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
+    };
+    img.onerror = function() {
+      alert('圖片生成失敗，請稍候再試或直接截圖保存。');
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+
+  // （可選）支援鍵盤快速選色：數字 1~9 對應前面顏色
+  window.addEventListener('keydown', (e) => {
+    if (!isNaN(Number(e.key))) {
+      const idx = Number(e.key) - 1;
+      if (idx >=0 && idx < colors.length) {
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
+        const sw = document.querySelectorAll('.swatch')[idx];
+        if (sw) {
+          sw.classList.add('selected');
+          selectedColor = sw.dataset.color;
+        }
+      }
+    }
+  });
+
 </script>
 </body>
 </html>
-
