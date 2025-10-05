@@ -21,25 +21,25 @@ p {
   margin-bottom: 20px;
 }
 table {
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 8px; /* 增加格子間距 */
 }
 td, th {
+  aspect-ratio: 1 / 1; /* 保持正方形 */
   width: 12vw;
-  height: 12vw;
   max-width: 70px;
-  max-height: 70px;
   border: 1px solid #ccc;
   text-align: center;
   vertical-align: middle;
   font-size: clamp(20px, 4vw, 48px);
-  position: relative;
+  border-radius: 12px; /* 圓角 */
   cursor: pointer;
-  border-radius: 10px;
   transition: background-color 0.2s, color 0.2s, font-weight 0.2s;
 }
 th {
   background-color: #f0f0f0;
   font-weight: bold;
+  border-radius: 12px;
 }
 input {
   width: 100%;
@@ -48,7 +48,7 @@ input {
   text-align: center;
   font-size: clamp(20px, 4vw, 48px);
   outline: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background-color: #fff;
 }
 .correct {
@@ -81,12 +81,6 @@ input {
   color: #fff;
   cursor: pointer;
 }
-.buttons {
-  margin-top: 15px;
-  display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
-}
 button.reset-btn {
   background-color: #007bff;
   color: #fff;
@@ -95,14 +89,15 @@ button.reset-btn {
   border: none;
   font-size: clamp(14px, 4vw, 20px);
   cursor: pointer;
+  margin-top: 25px; /* 與表格分開 */
 }
 button.clear-btn {
   background-color: #28a745;
   color: #fff;
-  padding: 8px 16px;
+  padding: 10px;
   border-radius: 8px;
   border: none;
-  font-size: clamp(14px, 4vw, 20px);
+  font-size: clamp(16px, 4vw, 24px);
   cursor: pointer;
 }
 .message {
@@ -134,8 +129,7 @@ button.clear-btn {
 <table id="multiplicationTable"></table>
 
 <div class="buttons">
-  <button class="reset-btn" id="resetBtn">重新開始</button>
-  <button class="clear-btn" id="clearBtn">全部清空挑戰</button>
+  <button class="reset-btn" id="resetBtn">恢復表格</button>
 </div>
 
 <div class="message" id="message"></div>
@@ -152,9 +146,23 @@ for (let n = 1; n <= 9; n++) {
   btn.classList.add('challenge-btn');
   btn.addEventListener('click', () => startChallenge(n));
   challengeButtonsDiv.appendChild(btn);
+
+  if (n === 9) {
+    const clearBtn = document.createElement('button');
+    clearBtn.textContent = '全部清空挑戰';
+    clearBtn.classList.add('clear-btn');
+    clearBtn.addEventListener('click', () => {
+      const tds = table.querySelectorAll('td');
+      tds.forEach(td => {
+        td.textContent = '';
+        td.className = '';
+      });
+      messageDiv.textContent = '';
+    });
+    challengeButtonsDiv.appendChild(clearBtn);
+  }
 }
 
-// 播放數字語音
 function speakNumber(num) {
   const utter = new SpeechSynthesisUtterance(num.toString());
   utter.lang = 'zh-TW';
@@ -242,7 +250,6 @@ function removeHighlight() {
   table.querySelectorAll('th').forEach(th => th.classList.remove('highlight'));
 }
 
-// 挑戰功能
 let currentChallenge = null;
 function startChallenge(n) {
   currentChallenge = n;
@@ -254,7 +261,6 @@ function startChallenge(n) {
   }
 }
 
-// 檢查挑戰完成
 function checkChallengeCompletion() {
   if (!currentChallenge) return;
   let allCorrect = true;
@@ -272,7 +278,6 @@ function checkChallengeCompletion() {
   }
 }
 
-// 簡單煙火動畫
 function showFirework() {
   for (let i = 0; i < 20; i++) {
     const fire = document.createElement('div');
@@ -285,16 +290,6 @@ function showFirework() {
     setTimeout(() => fire.remove(), 800);
   }
 }
-
-// 按鈕事件
-document.getElementById('clearBtn').addEventListener('click', () => {
-  const tds = table.querySelectorAll('td');
-  tds.forEach(td => {
-    td.textContent = '';
-    td.className = '';
-  });
-  messageDiv.textContent = '';
-});
 
 document.getElementById('resetBtn').addEventListener('click', () => {
   createTable();
@@ -312,7 +307,6 @@ for (let n = 2; n <= 9; n++) {
   const btn = document.createElement('a');
   btn.textContent = `${n} 乘法泡泡`;
   btn.href = `https://guaelves.github.io/Math/9981/${n}.html`;
-  // btn.target = "_blank";
   btn.style.display = 'inline-block';
   btn.style.backgroundColor = '#c8a2f7';
   btn.style.color = '#fff';
@@ -324,12 +318,9 @@ for (let n = 2; n <= 9; n++) {
   btn.style.cursor = 'pointer';
   bubbleButtonsDiv.appendChild(btn);
 }
-
-// 最後的 2~9 乘法泡泡
 const allBtn = document.createElement('a');
 allBtn.textContent = '2~9 乘法泡泡';
 allBtn.href = 'https://guaelves.github.io/Math/9981/All.html';
-// allBtn.target = "_blank";
 allBtn.style.display = 'inline-block';
 allBtn.style.backgroundColor = '#ff6f61';
 allBtn.style.color = '#fff';
@@ -342,9 +333,9 @@ allBtn.style.cursor = 'pointer';
 bubbleButtonsDiv.appendChild(allBtn);
 </script>
 
-<footer>
-    @2025 guaelves. All rights reserved.
+<footer style="margin-top:20px; color:#aaa; font-size:14px;">
+  ©2025 guaelves. All rights reserved.
 </footer>
-  
+
 </body>
 </html>
