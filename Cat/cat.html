@@ -1,126 +1,278 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<title>注音符號泡泡遊戲</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>小房子填色頁（手機友善）</title>
 <style>
-  body {
-    font-family: "Microsoft JhengHei", sans-serif;
-    text-align: center;
-    background-color: #f2f8ff;
-    overflow: hidden;
-    transition: background-color 0.6s, color 0.6s;
+  :root{
+    --bg:#FBFCFF; --card:#fff; --muted:#6b7280;
   }
-  h1 {
-    font-size: 48px;
-    margin-top: 30px;
-  }
-  .buttons {
-    margin-top: 15px;
-  }
-  button {
-    font-size: 20px;
-    margin: 8px;
-    padding: 10px 20px;
-    border-radius: 12px;
-    border: none;
-    cursor: pointer;
-    transition: background 0.4s, transform 0.2s;
-  }
-  button:hover {
-    transform: scale(1.05);
-  }
-  #gameArea {
-    position: relative;
-    width: 100%;
-    height: 80vh;
-    overflow: hidden;
-  }
-  .bubble {
-    position: absolute;
-    font-size: 40px;
-    padding: 25px;
-    border-radius: 50%;
-    color: white;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-  }
-  .bubble.correct {
-    animation: pop 0.4s forwards;
-  }
-  @keyframes pop {
-    0% { transform: scale(1); opacity: 1; }
-    100% { transform: scale(1.5); opacity: 0; }
-  }
-
-  /* 主題顏色變數 */
-  :root {
-    --main-color: #6ca0dc;
-    --accent-color: #f7b2bd;
-    --bg-color: #f2f8ff;
+  html,body{height:100%; margin:0; font-family:"Microsoft JhengHei",system-ui,Arial; background:var(--bg); color:#111;}
+  .wrap{max-width:920px; margin:10px auto; padding:12px; display:flex; flex-direction:column; gap:12px;}
+  header{display:flex; align-items:center; justify-content:space-between; gap:12px;}
+  h1{font-size:18px; margin:0;}
+  .controls{display:flex; gap:8px; flex-wrap:wrap;}
+  button{background:#fff; border:1px solid rgba(0,0,0,0.08); padding:8px 10px; border-radius:8px; cursor:pointer; font-size:14px;}
+  #paletteCard{background:var(--card); border-radius:12px; padding:10px; box-shadow:0 6px 18px rgba(10,20,40,0.06);}
+  .paletteRow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .swatch{width:46px; height:46px; border-radius:8px; border:2px solid rgba(0,0,0,0.08); box-sizing:border-box; touch-action:none;}
+  .swatch.selected{outline:3px solid #111; outline-offset:2px;}
+  .canvasCard{background:var(--card); border-radius:12px; padding:10px; box-shadow:0 8px 24px rgba(10,20,40,0.06); display:flex; flex-direction:column; gap:8px; align-items:center;}
+  #svgContainer{width:100%; display:flex; justify-content:center;}
+  svg{width:100%; max-width:700px; height:auto; touch-action:none; user-select:none;}
+  .seg{cursor:pointer; stroke:#222; stroke-width:3; stroke-linejoin:round; fill:#ffffff;}
+  .hint{color:var(--muted); font-size:13px;}
+  @media (max-width:520px){
+    .swatch{width:40px;height:40px;}
+    button{padding:7px 8px;font-size:13px;}
   }
 </style>
 </head>
 <body>
-  <h1>注音符號泡泡遊戲 🎈</h1>
-  <div class="buttons">
-    <button id="shengmuBtn">聲母</button>
-    <button id="jieyinBtn">介音</button>
-    <button id="yunmuBtn">韻母</button>
-    <button id="hejieBtn">結合韻</button>
-    <button id="themeBtn">🎨 自動配色主題</button>
+  <div class="wrap">
+    <header>
+      <h1>🏠 小房子填色頁</h1>
+      <div class="controls" aria-hidden="false">
+        <button id="themePink">甜美粉</button>
+        <button id="themeOcean">海洋藍</button>
+        <button id="themeForest">森林綠</button>
+        <button id="randColors">隨機顏色</button>
+        <button id="resetBtn">重置</button>
+        <button id="downloadBtn">下載 PNG</button>
+      </div>
+    </header>
+
+    <div id="paletteCard" aria-label="顏色盤">
+      <div class="hint">點選顏色 → 點圖上色；或拖曳顏色到圖上放開（手機：長按選色再點圖區塊）</div>
+      <div id="palette" class="paletteRow"></div>
+    </div>
+
+    <div class="canvasCard" role="main">
+      <div id="svgContainer">
+        <!-- SVG 小房子（20 個可填色區段，id seg0..seg19） -->
+        <svg id="artSvg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-label="小房子著色頁">
+          <!-- Roof -->
+          <path id="seg0" class="seg" d="M80 150 L200 60 L320 150 L280 150 L200 95 L120 150 Z"/>
+          <path id="seg1" class="seg" d="M120 150 L200 95 L280 150 L200 160 Z"/>
+          <!-- Chimney -->
+          <path id="seg2" class="seg" d="M250 75 L250 40 L275 40 L275 85 Q265 85 250 75 Z"/>
+          <!-- Left wall -->
+          <path id="seg3" class="seg" d="M80 150 L80 300 Q120 330 160 300 L160 170 Z"/>
+          <!-- Right wall -->
+          <path id="seg4" class="seg" d="M320 150 L320 300 Q280 330 240 300 L240 170 Z"/>
+          <!-- Center wall -->
+          <path id="seg5" class="seg" d="M160 170 L240 170 L240 300 L160 300 Z"/>
+          <!-- Door -->
+          <path id="seg6" class="seg" d="M185 230 L185 300 L215 300 L215 230 Q200 220 185 230 Z"/>
+          <!-- Door knob -->
+          <circle id="seg7" class="seg" cx="210" cy="260" r="4"/>
+          <!-- Left window pane top -->
+          <path id="seg8" class="seg" d="M110 180 L145 180 L145 210 L110 210 Z"/>
+          <!-- Left window pane bottom -->
+          <path id="seg9" class="seg" d="M110 210 L145 210 L145 240 L110 240 Z"/>
+          <!-- Right window top -->
+          <path id="seg10" class="seg" d="M255 180 L290 180 L290 210 L255 210 Z"/>
+          <!-- Right window bottom -->
+          <path id="seg11" class="seg" d="M255 210 L290 210 L290 240 L255 240 Z"/>
+          <!-- Roof tile left -->
+          <path id="seg12" class="seg" d="M100 130 Q140 120 180 130 Q140 125 100 130 Z"/>
+          <!-- Roof tile right -->
+          <path id="seg13" class="seg" d="M220 130 Q260 120 300 130 Q260 125 220 130 Z"/>
+          <!-- Path front (stepping stones) -->
+          <path id="seg14" class="seg" d="M160 300 Q180 320 200 315 Q220 320 240 300 L240 300 Q200 330 160 300 Z"/>
+          <!-- Left bush -->
+          <path id="seg15" class="seg" d="M40 290 Q70 260 100 290 Q70 280 40 290 Z"/>
+          <!-- Right bush -->
+          <path id="seg16" class="seg" d="M300 290 Q330 260 360 290 Q330 280 300 290 Z"/>
+          <!-- Tree trunk -->
+          <path id="seg17" class="seg" d="M320 200 L340 200 L340 260 L320 260 Z"/>
+          <!-- Tree foliage -->
+          <path id="seg18" class="seg" d="M300 170 Q335 140 370 170 Q345 160 320 170 Q315 165 300 170 Z"/>
+          <!-- Sun -->
+          <circle id="seg19" class="seg" cx="60" cy="60" r="28"/>
+          <!-- Outline strokes for clarity -->
+          <g stroke="#222" stroke-width="3" fill="none">
+            <path d="M80 150 L200 60 L320 150"/>
+            <path d="M80 150 L80 300 Q120 330 160 300 L160 170"/>
+            <path d="M320 150 L320 300 Q280 330 240 300 L240 170"/>
+            <path d="M160 170 L240 170"/>
+            <path d="M160 300 L240 300"/>
+          </g>
+        </svg>
+      </div>
+      <div class="hint">提示：拖曳顏色到區塊或先選色再點圖區塊。手機可長按顏色選取後點圖上色。</div>
+    </div>
   </div>
-  <div id="gameArea"></div>
 
 <script>
-  const shengmu = ["ㄅ","ㄆ","ㄇ","ㄈ","ㄉ","ㄊ","ㄋ","ㄌ","ㄍ","ㄎ","ㄏ","ㄐ","ㄑ","ㄒ","ㄓ","ㄔ","ㄕ","ㄖ","ㄗ","ㄘ","ㄙ"];
-  const jieyin = ["ㄧ","ㄨ","ㄩ"];
-  const yunmu = ["ㄚ","ㄛ","ㄜ","ㄝ","ㄞ","ㄟ","ㄠ","ㄡ","ㄢ","ㄣ","ㄤ","ㄥ","ㄦ"];
-  const hejie = ["ㄧㄚ","ㄧㄝ","ㄧㄠ","ㄧㄡ","ㄧㄢ","ㄧㄣ","ㄧㄤ","ㄧㄥ","ㄨㄚ","ㄨㄛ","ㄨㄞ","ㄨㄟ","ㄨㄢ","ㄨㄣ","ㄨㄤ","ㄨㄥ","ㄩㄝ","ㄩㄢ","ㄩㄣ","ㄩㄥ"];
-  const themes = [
-    { name: "甜美粉", main: "#f7b2bd", accent: "#ffe5ec", bg: "#fff0f3" },
-    { name: "海洋藍", main: "#6ca0dc", accent: "#b9e6ff", bg: "#e3f2fd" },
-    { name: "森林綠", main: "#6dbf6d", accent: "#c5e3bf", bg: "#f0fff0" }
-  ];
+/* ========== 設定 ========== */
+const SWATCH_COUNT = 8; // 顏色方塊數量
+const artSvg = document.getElementById('artSvg');
+const paletteEl = document.getElementById('palette');
+let selectedColor = null;
 
-  let currentTheme = 0;
-  const gameArea = document.getElementById("gameArea");
+/* 三個主題範例（每個是 SWATCH_COUNT 個顏色） */
+const THEMES = {
+  pink: ["#FFD6E0","#FFB3C6","#FF8FAF","#FFC6E2","#FFEAF2","#FF9CC7","#FFD1E9","#FFEBF5"],
+  ocean: ["#D0F0FF","#A9E6FF","#7FD1FF","#6BCBFF","#99E6FF","#66D1FF","#BFEFFF","#E9FBFF"],
+  forest: ["#E6F9E6","#CBF0CB","#AEE6AE","#8FE08F","#9FE6B2","#7FCD8A","#DFF5D6","#E9FAEA"]
+};
 
-  document.getElementById("shengmuBtn").onclick = () => startGame(shengmu);
-  document.getElementById("jieyinBtn").onclick = () => startGame(jieyin);
-  document.getElementById("yunmuBtn").onclick = () => startGame(yunmu);
-  document.getElementById("hejieBtn").onclick = () => startGame(hejie);
-  document.getElementById("themeBtn").onclick = switchTheme;
+/* 產生柔和隨機色（HSL 基礎） */
+function randomSoftColor(){
+  const h = Math.floor(Math.random()*360);
+  const s = 60 + Math.floor(Math.random()*15); // 60~75
+  const l = 55 + Math.floor(Math.random()*10); // 55~65
+  return `hsl(${h} ${s}% ${l}%)`;
+}
+function makePalette(n){
+  const arr=[];
+  for(let i=0;i<n;i++) arr.push(randomSoftColor());
+  return arr;
+}
 
-  function startGame(list) {
-    gameArea.innerHTML = "";
-    for (let i = 0; i < list.length; i++) {
-      const b = document.createElement("div");
-      b.className = "bubble";
-      b.textContent = list[i];
-      b.style.left = Math.random() * (window.innerWidth - 100) + "px";
-      b.style.top = Math.random() * (window.innerHeight - 200) + "px";
-      b.style.background = `linear-gradient(135deg, var(--main-color), var(--accent-color))`;
-      b.onclick = () => {
-        b.classList.add("correct");
-        setTimeout(() => b.remove(), 300);
-        const utter = new SpeechSynthesisUtterance(b.textContent);
-        utter.lang = "zh-TW";
-        speechSynthesis.speak(utter);
-      };
-      gameArea.appendChild(b);
+/* ========== 建立/渲染顏色盤 ========== */
+function renderPalette(colors){
+  paletteEl.innerHTML='';
+  colors.forEach((c, idx)=>{
+    const d = document.createElement('div');
+    d.className='swatch';
+    d.style.background = c;
+    d.draggable = true;
+    d.dataset.color = c;
+    d.title = `顏色 ${idx+1}`;
+    // 點選（桌機/手機）
+    d.addEventListener('click', ()=>{
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+      d.classList.add('selected');
+      selectedColor = c;
+    });
+    // touch long-press / touchstart to select quickly
+    d.addEventListener('touchstart', (ev)=>{
+      ev.preventDefault();
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+      d.classList.add('selected');
+      selectedColor = c;
+    }, {passive:false});
+    // dragstart for desktop
+    d.addEventListener('dragstart', (ev)=>{
+      ev.dataTransfer.setData('text/plain', c);
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width=40; canvas.height=40;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = c; ctx.fillRect(0,0,40,40);
+        ev.dataTransfer.setDragImage(canvas,20,20);
+      } catch(e){}
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected'));
+      d.classList.add('selected');
+      selectedColor = c;
+    });
+    paletteEl.appendChild(d);
+  });
+  // auto select first
+  const first = paletteEl.querySelector('.swatch');
+  if(first){ first.classList.add('selected'); selectedColor = first.dataset.color; }
+}
+
+/* ========== SVG 區塊事件（填色 / drag drop） ========== */
+const segEls = Array.from(artSvg.querySelectorAll('.seg'));
+segEls.forEach(seg=>{
+  // initialize white
+  seg.style.fill = '#ffffff';
+  // click / tap to fill
+  seg.addEventListener('click', ()=>{
+    if(selectedColor){
+      seg.style.fill = selectedColor;
+    } else {
+      // fallback pick first
+      const f = paletteEl.querySelector('.swatch');
+      if(f){ f.classList.add('selected'); selectedColor = f.dataset.color; seg.style.fill = selectedColor; }
+    }
+  }, {passive:true});
+  // dragover & drop for drag-to-fill
+  seg.addEventListener('dragover', (ev)=>{ ev.preventDefault(); seg.style.filter='brightness(.95) drop-shadow(0 3px 8px rgba(0,0,0,0.12))'; });
+  seg.addEventListener('dragleave', ()=>{ seg.style.filter=''; });
+  seg.addEventListener('drop', (ev)=>{ ev.preventDefault(); seg.style.filter=''; const c = ev.dataTransfer.getData('text/plain'); if(c){ seg.style.fill = c; selectSwatchByColor(c); } });
+  // touch: allow tap (handled by click) — dragging color on mobile uses selection then tap
+});
+
+/* helper: select swatch by color */
+function selectSwatchByColor(c){
+  const sw = Array.from(document.querySelectorAll('.swatch')).find(s=>s.dataset.color===c);
+  if(sw){ document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('selected')); sw.classList.add('selected'); selectedColor = c; }
+}
+
+/* ========== 按鈕功能 ========== */
+document.getElementById('randColors').addEventListener('click', ()=> {
+  renderPalette(makePalette(SWATCH_COUNT));
+});
+document.getElementById('resetBtn').addEventListener('click', ()=> {
+  segEls.forEach(s=> s.style.fill = '#ffffff');
+  document.querySelectorAll('.swatch').forEach(s=> s.classList.remove('selected'));
+  selectedColor = null;
+});
+document.getElementById('themePink').addEventListener('click', ()=> {
+  renderPalette(THEMES.pink.slice(0,SWATCH_COUNT));
+});
+document.getElementById('themeOcean').addEventListener('click', ()=> {
+  renderPalette(THEMES.ocean.slice(0,SWATCH_COUNT));
+});
+document.getElementById('themeForest').addEventListener('click', ()=> {
+  renderPalette(THEMES.forest.slice(0,SWATCH_COUNT));
+});
+
+/* 下載 PNG */
+document.getElementById('downloadBtn').addEventListener('click', ()=> {
+  // clone svg and serialize
+  const clone = artSvg.cloneNode(true);
+  clone.querySelectorAll('.seg').forEach(el => { el.style.filter=''; el.style.transform=''; });
+  const serializer = new XMLSerializer();
+  const svgString = '<?xml version="1.0" standalone="no"?>\n' + serializer.serializeToString(clone);
+  const blob = new Blob([svgString], {type: 'image/svg+xml;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const img = new Image();
+  img.onload = function(){
+    const canvas = document.createElement('canvas');
+    const size = 1600; // high-res
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+    // draw scaled to canvas
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+    canvas.toBlob((b)=>{
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = 'house_coloring.png';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }, 'image/png');
+  };
+  img.onerror = function(){
+    alert('匯出失敗，請改用截圖或稍候再試。');
+    URL.revokeObjectURL(url);
+  };
+  img.src = url;
+});
+
+/* keyboard quick select 1..8 */
+window.addEventListener('keydown',(e)=>{
+  if(!isNaN(Number(e.key))){
+    const i = Number(e.key)-1;
+    const sws = document.querySelectorAll('.swatch');
+    if(i>=0 && i < sws.length){
+      sws.forEach(s=>s.classList.remove('selected'));
+      sws[i].classList.add('selected');
+      selectedColor = sws[i].dataset.color;
     }
   }
+});
 
-  function switchTheme() {
-    currentTheme = (currentTheme + 1) % themes.length;
-    const theme = themes[currentTheme];
-    document.documentElement.style.setProperty("--main-color", theme.main);
-    document.documentElement.style.setProperty("--accent-color", theme.accent);
-    document.body.style.backgroundColor = theme.bg;
-    document.getElementById("themeBtn").textContent = `🎨 ${theme.name}`;
-  }
+/* ========== 初始化（預設主題為海洋藍） ========== */
+renderPalette(THEMES.ocean.slice(0,SWATCH_COUNT));
 </script>
 </body>
 </html>
