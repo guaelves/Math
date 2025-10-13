@@ -85,9 +85,9 @@
     color: #000;
     border-radius: 10px;
   }
-  #startBtn { background-color: #ffeb3b; } /* 黃色 */
-  #restartBtn { background-color: #b2fab4; } /* 淡綠 */
-  #tableBtn { background-color: #b3e5fc; }   /* 淡藍 */
+  #startBtn { background-color: #ffeb3b; }
+  #restartBtn { background-color: #b2fab4; }
+  #tableBtn { background-color: #b3e5fc; }
 
   @media (max-width: 420px) {
     #question { font-size: 52px; }
@@ -118,10 +118,11 @@
 <script>
 let currentQuestion = 0;
 let correctAnswers = 0;
+let wrongAnswers = 0;
 const totalQuestions = 9;
 let questionPool = [];
 
-/* Fisher-Yates shuffle */
+/* Fisher-Yates 洗牌 */
 function shuffle(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -130,7 +131,7 @@ function shuffle(array) {
   return array;
 }
 
-/* Get question from shuffled pool */
+/* 從洗好的題庫中取題 */
 function getRandomQuestion() {
   const n = questionPool[currentQuestion];
   return { question: `2 × ${n}`, answer: 2 * n };
@@ -256,36 +257,40 @@ function handlePick(selected, el) {
       if (currentQuestion < totalQuestions) {
         showQuestion();
       } else {
-        document.getElementById('question').textContent = '恭喜🎉全部答對！';
+        document.getElementById('question').textContent = '遊戲結束！';
         document.getElementById('bubbles').innerHTML = '';
-        msgDiv.textContent = '';
+        if (wrongAnswers === 0) {
+          msgDiv.textContent = '恭喜🎉 全部答對！';
+        } else {
+          msgDiv.textContent = `完成遊戲，共錯 ${wrongAnswers} 題，加油！`;
+        }
       }
     }, 700);
-
   } else {
     el.style.background = '#f44336';
     el.classList.add('wrong');
     msgDiv.style.color = '#f44336';
     msgDiv.textContent = '答錯！';
+    wrongAnswers++; // 新增：錯誤次數 +1
   }
 }
 
-/* Start game */
 document.getElementById('startBtn').addEventListener('click', () => {
   document.getElementById('startContainer').style.display = 'none';
   document.getElementById('gameContainer').style.display = 'block';
   currentQuestion = 0;
   correctAnswers = 0;
-  questionPool = shuffle([1,2,3,4,5,6,7,8,9]); // 新增：隨機題目順序
+  wrongAnswers = 0;
+  questionPool = shuffle([1,2,3,4,5,6,7,8,9]);
   showQuestion();
 });
 
-/* Restart game */
 document.getElementById('restartBtn').addEventListener('click', () => {
   currentQuestion = 0;
   correctAnswers = 0;
+  wrongAnswers = 0;
   if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  questionPool = shuffle([1,2,3,4,5,6,7,8,9]); // 新增：重新洗牌
+  questionPool = shuffle([1,2,3,4,5,6,7,8,9]);
   showQuestion();
 });
 </script>
