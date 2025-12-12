@@ -12,12 +12,12 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        flex-direction: column;
+        min-height: 100vh;
     }
 
     .game-container {
         width: 100%;
-        max-width: 520px;
         padding: 20px;
         box-sizing: border-box;
         display: flex;
@@ -26,8 +26,15 @@
         align-items: center;
     }
 
+    #gameTitle {
+        margin-bottom: 80px;
+        text-align: center;
+        color: #333;
+        line-height: 1;
+    }
+
     .question-card {
-        width: 100%;
+        width: 98%;
         aspect-ratio: 2 / 1;
         background: #fff8dc;
         border: 2px solid #e0c676;
@@ -38,14 +45,16 @@
         font-weight: bold;
         box-shadow: 3px 3px 8px rgba(0,0,0,0.15);
         position: relative;
-        padding: 0 10px;
         overflow: hidden;
+        padding: 0 10px;
     }
 
     .question-card span {
-        display: inline-block;
+        display: block;
+        width: 100%;
+        height: 100%;
+        text-align: center;
         white-space: nowrap;
-        font-size: calc(80px + 1vw);
     }
 
     .question-card:before {
@@ -64,11 +73,13 @@
     .options-container {
         width: 100%;
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-gap: 20px;
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 15px;
+        justify-items: center;
     }
 
     .card {
+        width: 40vw;
         aspect-ratio: 2 / 1;
         background: #f0f0f0;
         border-radius: 12px;
@@ -79,14 +90,16 @@
         align-items: center;
         cursor: pointer;
         transition: 0.2s;
-        padding: 0 5px;
         overflow: hidden;
+        padding: 0 5px;
     }
 
     .card span {
-        display: inline-block;
+        display: block;
+        width: 100%;
+        height: 100%;
+        text-align: center;
         white-space: nowrap;
-        font-size: calc(50px + 1vw);
     }
 
     .card:hover {
@@ -134,12 +147,20 @@
         75% { transform: translateX(-6px); }
         100% { transform: translateX(0); }
     }
+
+    @media (max-width: 480px) {
+        .card {
+            width: 35vw;
+        }
+    }
 </style>
 </head>
 
 <body>
 
 <div class="game-container">
+
+    <h1 id="gameTitle">10 以內減法小遊戲</h1>
 
     <div class="question-card" id="question"><span>題目載入中...</span></div>
 
@@ -157,12 +178,30 @@ let maxQuestions = 10;
 let count = 0;
 let correctCount = 0;
 
-// 減法題目生成
+function fitText(el) {
+    const parentHeight = el.parentElement.clientHeight;
+    const parentWidth = el.parentElement.clientWidth;
+    let fontSize = parentHeight * 0.8;
+    el.style.fontSize = fontSize + "px";
+
+    while(el.scrollWidth > parentWidth && fontSize > 10){
+        fontSize -= 1;
+        el.style.fontSize = fontSize + "px";
+    }
+}
+
+function fitTitle() {
+    const title = document.getElementById("gameTitle");
+    const questionCard = document.getElementById("question");
+    const cardHeight = questionCard.clientHeight;
+    title.style.fontSize = cardHeight * 0.2 + "px";
+}
+
 function generateQuestion() {
     let a, b, answer, key;
     do {
-        a = Math.floor(Math.random() * 10) + 1; // 1~10
-        b = Math.floor(Math.random() * a) + 1;  // 1~a，保證不出負數
+        a = Math.floor(Math.random() * 10) + 0; // 0~10
+        b = Math.floor(Math.random() * (a + 1)); // 0~a，確保不為負數
         answer = a - b;
         key = `${a}-${b}`;
     } while (usedQuestions.includes(key));
@@ -175,8 +214,13 @@ function newGame() {
         document.getElementById("options").innerHTML = "";
         document.getElementById("counter").innerText = "";
         document.getElementById("restartBtn").style.display = "block";
-        document.getElementById("question").innerHTML =
-            `<span>完成！正確 ${correctCount} 題</span>`;
+
+        let qSpan = document.createElement("span");
+        qSpan.innerText = `完成！正確 ${correctCount} 題`;
+        document.getElementById("question").innerHTML = "";
+        document.getElementById("question").appendChild(qSpan);
+        fitText(qSpan);
+        fitTitle();
         return;
     }
 
@@ -186,7 +230,12 @@ function newGame() {
     document.getElementById("restartBtn").style.display = "none";
 
     let q = generateQuestion();
-    document.getElementById("question").innerHTML = `<span>${q.a} - ${q.b}</span>`;
+    let qSpan = document.createElement("span");
+    qSpan.innerText = `${q.a} - ${q.b}`;
+    document.getElementById("question").innerHTML = "";
+    document.getElementById("question").appendChild(qSpan);
+    fitText(qSpan);
+    fitTitle();
 
     let choices = [q.answer];
     while (choices.length < 4) {
@@ -198,18 +247,23 @@ function newGame() {
     choices.forEach(num => {
         let card = document.createElement("div");
         card.className = "card";
-        card.innerHTML = `<span>${num}</span>`;
+
+        let span = document.createElement("span");
+        span.innerText = num;
+        card.appendChild(span);
+
+        setTimeout(() => fitText(span), 0);
 
         card.onclick = () => {
             if (num === q.answer) {
                 card.classList.add("correct");
-                card.innerHTML = `<span>⭕</span>`;
+                span.innerText = "⭕";
                 correctCount++;
                 document.getElementById("options").style.pointerEvents = "none";
                 setTimeout(newGame, 500);
             } else {
                 card.classList.add("wrong");
-                card.innerHTML = `<span>❌</span>`;
+                span.innerText = "❌";
                 card.onclick = null;
             }
         };
@@ -226,6 +280,13 @@ function restartGame() {
     usedQuestions = [];
     newGame();
 }
+
+window.addEventListener('resize', () => {
+    fitTitle();
+    let qSpan = document.querySelector("#question span");
+    if(qSpan) fitText(qSpan);
+    document.querySelectorAll(".card span").forEach(fitText);
+});
 
 newGame();
 </script>
