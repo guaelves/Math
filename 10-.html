@@ -18,26 +18,34 @@
     .game-container {
         width: 100%;
         max-width: 520px;
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
         padding: 20px;
         box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        align-items: center;
     }
 
     .question-card {
-        flex: 1.2;
+        width: 100%;
+        aspect-ratio: 2 / 1;
         background: #fff8dc;
         border: 2px solid #e0c676;
         border-radius: 12px;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 80px;
         font-weight: bold;
         box-shadow: 3px 3px 8px rgba(0,0,0,0.15);
         position: relative;
+        padding: 0 10px;
+        overflow: hidden;
+    }
+
+    .question-card span {
+        display: inline-block;
+        white-space: nowrap;
+        font-size: calc(80px + 1vw);
     }
 
     .question-card:before {
@@ -53,28 +61,32 @@
         border-right: 2px solid #e0c676;
     }
 
-    /* 2 欄 × 2 排選項 */
     .options-container {
-        flex: 1;
+        width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
         grid-gap: 20px;
-        margin-top: 20px;
-        pointer-events: auto;
     }
 
     .card {
+        aspect-ratio: 2 / 1;
         background: #f0f0f0;
         border-radius: 12px;
         border: 2px solid #ccc;
-        font-size: 48px;
         font-weight: bold;
-        height: 90px;
         display: flex;
         justify-content: center;
         align-items: center;
         cursor: pointer;
         transition: 0.2s;
+        padding: 0 5px;
+        overflow: hidden;
+    }
+
+    .card span {
+        display: inline-block;
+        white-space: nowrap;
+        font-size: calc(50px + 1vw);
     }
 
     .card:hover {
@@ -95,13 +107,11 @@
 
     #counter {
         text-align: center;
-        margin-top: 10px;
         font-size: 28px;
         font-weight: bold;
     }
 
     #restartBtn {
-        margin: 20px auto 0 auto;
         padding: 12px 30px;
         font-size: 24px;
         border: none;
@@ -124,7 +134,6 @@
         75% { transform: translateX(-6px); }
         100% { transform: translateX(0); }
     }
-
 </style>
 </head>
 
@@ -132,7 +141,7 @@
 
 <div class="game-container">
 
-    <div class="question-card" id="question">題目載入中...</div>
+    <div class="question-card" id="question"><span>題目載入中...</span></div>
 
     <div id="counter"></div>
 
@@ -148,12 +157,12 @@ let maxQuestions = 10;
 let count = 0;
 let correctCount = 0;
 
-// 生成減法題目
+// 減法題目生成
 function generateQuestion() {
     let a, b, answer, key;
     do {
-        a = Math.floor(Math.random() * 10) + 1;   // 1~10
-        b = Math.floor(Math.random() * a) + 1;    // 1~a 保證不負數
+        a = Math.floor(Math.random() * 10) + 1; // 1~10
+        b = Math.floor(Math.random() * a) + 1;  // 1~a，保證不出負數
         answer = a - b;
         key = `${a}-${b}`;
     } while (usedQuestions.includes(key));
@@ -166,8 +175,8 @@ function newGame() {
         document.getElementById("options").innerHTML = "";
         document.getElementById("counter").innerText = "";
         document.getElementById("restartBtn").style.display = "block";
-        document.getElementById("question").innerText =
-            `完成！正確 ${correctCount} 題`;
+        document.getElementById("question").innerHTML =
+            `<span>完成！正確 ${correctCount} 題</span>`;
         return;
     }
 
@@ -177,7 +186,7 @@ function newGame() {
     document.getElementById("restartBtn").style.display = "none";
 
     let q = generateQuestion();
-    document.getElementById("question").innerText = `${q.a} - ${q.b}`;
+    document.getElementById("question").innerHTML = `<span>${q.a} - ${q.b}</span>`;
 
     let choices = [q.answer];
     while (choices.length < 4) {
@@ -189,18 +198,18 @@ function newGame() {
     choices.forEach(num => {
         let card = document.createElement("div");
         card.className = "card";
-        card.innerText = num;
+        card.innerHTML = `<span>${num}</span>`;
 
         card.onclick = () => {
             if (num === q.answer) {
                 card.classList.add("correct");
-                card.innerHTML = "⭕";
+                card.innerHTML = `<span>⭕</span>`;
                 correctCount++;
                 document.getElementById("options").style.pointerEvents = "none";
                 setTimeout(newGame, 500);
             } else {
                 card.classList.add("wrong");
-                card.innerHTML = "❌";
+                card.innerHTML = `<span>❌</span>`;
                 card.onclick = null;
             }
         };
