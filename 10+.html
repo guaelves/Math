@@ -15,10 +15,9 @@
         height: 100vh;
     }
 
-    /* 主要容器：手機呈現長形畫面，電腦置中 */
     .game-container {
         width: 100%;
-        max-width: 480px; /* 電腦時置中不會太寬 */
+        max-width: 520px;
         height: 100vh;
         display: flex;
         flex-direction: column;
@@ -27,16 +26,17 @@
         box-sizing: border-box;
     }
 
-    /* 題目區域 */
+    /* 題目 */
     .question-card {
-        flex: 1.2; /* 比例：題目較大 */
+        flex: 1.2;
         background: #fff8dc;
         border: 2px solid #e0c676;
         border-radius: 12px;
         display: flex;
         justify-content: center;
         align-items: center;
-        font-size: 48px;
+        font-size: 80px;
+        font-weight: bold;
         box-shadow: 3px 3px 8px rgba(0,0,0,0.15);
         position: relative;
     }
@@ -54,21 +54,24 @@
         border-right: 2px solid #e0c676;
     }
 
-    /* 選項區域：兩欄排列 */
+    /* ★ 2 欄 × 2 排（橫長卡片） */
     .options-container {
         flex: 1;
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-gap: 18px;
+        grid-template-columns: 1fr 1fr;   /* ←★ 兩欄 */
+        grid-gap: 20px;
         margin-top: 20px;
         pointer-events: auto;
     }
 
+    /* ★ 卡片橫長方形 */
     .card {
         background: #f0f0f0;
         border-radius: 12px;
         border: 2px solid #ccc;
-        font-size: 30px;
+        font-size: 48px;
+        font-weight: bold;
+        height: 90px;              /* ←★ 橫長卡片高度 */
         display: flex;
         justify-content: center;
         align-items: center;
@@ -95,13 +98,14 @@
     #counter {
         text-align: center;
         margin-top: 10px;
-        font-size: 20px;
+        font-size: 28px;
+        font-weight: bold;
     }
 
     #restartBtn {
         margin: 20px auto 0 auto;
-        padding: 10px 20px;
-        font-size: 20px;
+        padding: 12px 30px;
+        font-size: 24px;
         border: none;
         background: #4CAF50;
         color: white;
@@ -122,6 +126,7 @@
         75% { transform: translateX(-6px); }
         100% { transform: translateX(0); }
     }
+
 </style>
 </head>
 
@@ -163,14 +168,9 @@ function newGame() {
         document.getElementById("counter").innerText = "";
         document.getElementById("restartBtn").style.display = "block";
 
-        if (correctCount === maxQuestions) {
-            document.getElementById("question").innerText = "完成 🎉🎉";
-            setTimeout(() => {
-                document.getElementById("question").innerText = `完成！正確 ${correctCount} 題`;
-            }, 1000);
-        } else {
-            document.getElementById("question").innerText = `完成！正確 ${correctCount} 題`;
-        }
+        document.getElementById("question").innerText =
+            `完成！正確 ${correctCount} 題`;
+
         return;
     }
 
