@@ -26,7 +26,6 @@
         align-items: center;
     }
 
-    /* 題目卡 - 寬度 100%，2:1 */
     .question-card {
         width: 98%;
         aspect-ratio: 2 / 1;
@@ -39,14 +38,16 @@
         font-weight: bold;
         box-shadow: 3px 3px 8px rgba(0,0,0,0.15);
         position: relative;
-        padding: 0 10px;
         overflow: hidden;
+        padding: 0 10px;
     }
 
     .question-card span {
-        display: inline-block;
+        display: block;
+        width: 100%;
+        height: 100%;
+        text-align: center;
         white-space: nowrap;
-        font-size: calc(100px + 3vw);
     }
 
     .question-card:before {
@@ -62,7 +63,6 @@
         border-right: 2px solid #e0c676;
     }
 
-    /* 答案容器 2x2 */
     .options-container {
         width: 100%;
         display: grid;
@@ -71,9 +71,8 @@
         justify-items: center;
     }
 
-    /* 答案卡 - 寬度為螢幕的 1/4，2:1 */
     .card {
-        width: 40vw; /* 1/4 螢幕寬度 */
+        width: 40vw;
         aspect-ratio: 2 / 1;
         background: #f0f0f0;
         border-radius: 12px;
@@ -84,14 +83,16 @@
         align-items: center;
         cursor: pointer;
         transition: 0.2s;
-        padding: 0 5px;
         overflow: hidden;
+        padding: 0 5px;
     }
 
     .card span {
-        display: inline-block;
+        display: block;
+        width: 100%;
+        height: 100%;
+        text-align: center;
         white-space: nowrap;
-        font-size: calc(40px + 2vw);
     }
 
     .card:hover {
@@ -140,16 +141,9 @@
         100% { transform: translateX(0); }
     }
 
-    /* 手機橫豎屏自動縮放 */
     @media (max-width: 480px) {
         .card {
-            width: 35vw; /* 手機螢幕上稍微大一些 */
-        }
-        .card span {
-            font-size: calc(16px + 3vw);
-        }
-        .question-card span {
-            font-size: calc(50px + 4vw);
+            width: 35vw;
         }
     }
 </style>
@@ -175,6 +169,19 @@ let maxQuestions = 10;
 let count = 0;
 let correctCount = 0;
 
+// 自動調整文字大小，使文字填滿父容器約 80%
+function fitText(el) {
+    const parentHeight = el.parentElement.clientHeight;
+    const parentWidth = el.parentElement.clientWidth;
+    let fontSize = parentHeight * 0.8; // 先以高度 80%
+    el.style.fontSize = fontSize + "px";
+
+    while(el.scrollWidth > parentWidth && fontSize > 10){
+        fontSize -= 1;
+        el.style.fontSize = fontSize + "px";
+    }
+}
+
 function generateQuestion() {
     let a, b, answer, key;
     do {
@@ -192,8 +199,12 @@ function newGame() {
         document.getElementById("options").innerHTML = "";
         document.getElementById("counter").innerText = "";
         document.getElementById("restartBtn").style.display = "block";
-        document.getElementById("question").innerHTML =
-            `<span>完成！正確 ${correctCount} 題</span>`;
+
+        let qSpan = document.createElement("span");
+        qSpan.innerText = `完成！正確 ${correctCount} 題`;
+        document.getElementById("question").innerHTML = "";
+        document.getElementById("question").appendChild(qSpan);
+        fitText(qSpan);
         return;
     }
 
@@ -203,7 +214,11 @@ function newGame() {
     document.getElementById("restartBtn").style.display = "none";
 
     let q = generateQuestion();
-    document.getElementById("question").innerHTML = `<span>${q.a} + ${q.b}</span>`;
+    let qSpan = document.createElement("span");
+    qSpan.innerText = `${q.a} + ${q.b}`;
+    document.getElementById("question").innerHTML = "";
+    document.getElementById("question").appendChild(qSpan);
+    fitText(qSpan);
 
     let choices = [q.answer];
     while (choices.length < 4) {
@@ -215,18 +230,24 @@ function newGame() {
     choices.forEach(num => {
         let card = document.createElement("div");
         card.className = "card";
-        card.innerHTML = `<span>${num}</span>`;
+
+        let span = document.createElement("span");
+        span.innerText = num;
+        card.appendChild(span);
+
+        // 放入 DOM 後再調整字體
+        setTimeout(() => fitText(span), 0);
 
         card.onclick = () => {
             if (num === q.answer) {
                 card.classList.add("correct");
-                card.innerHTML = `<span>⭕</span>`;
+                span.innerText = "⭕";
                 correctCount++;
                 document.getElementById("options").style.pointerEvents = "none";
                 setTimeout(newGame, 500);
             } else {
                 card.classList.add("wrong");
-                card.innerHTML = `<span>❌</span>`;
+                span.innerText = "❌";
                 card.onclick = null;
             }
         };
@@ -243,6 +264,12 @@ function restartGame() {
     usedQuestions = [];
     newGame();
 }
+
+window.addEventListener('resize', () => {
+    let qSpan = document.querySelector("#question span");
+    if(qSpan) fitText(qSpan);
+    document.querySelectorAll(".card span").forEach(fitText);
+});
 
 newGame();
 </script>
