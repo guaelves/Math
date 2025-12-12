@@ -26,6 +26,13 @@
         align-items: center;
     }
 
+    #gameTitle {
+        margin-bottom: 80px; /* 與題目卡間距 */
+        text-align: center;
+        color: #333;
+        line-height: 1;
+    }
+
     .question-card {
         width: 98%;
         aspect-ratio: 2 / 1;
@@ -165,24 +172,31 @@
 
 </div>
 
-
 <script>
 let usedQuestions = [];
 let maxQuestions = 10;
 let count = 0;
 let correctCount = 0;
 
-// 自動調整文字大小，使文字填滿父容器約 80%
+// 調整文字大小填滿父容器
 function fitText(el) {
     const parentHeight = el.parentElement.clientHeight;
     const parentWidth = el.parentElement.clientWidth;
-    let fontSize = parentHeight * 0.8; // 先以高度 80%
+    let fontSize = parentHeight * 0.8; // 高度 80%
     el.style.fontSize = fontSize + "px";
 
     while(el.scrollWidth > parentWidth && fontSize > 10){
         fontSize -= 1;
         el.style.fontSize = fontSize + "px";
     }
+}
+
+// 調整標題字體大小為題目卡 20%
+function fitTitle() {
+    const title = document.getElementById("gameTitle");
+    const questionCard = document.getElementById("question");
+    const cardHeight = questionCard.clientHeight;
+    title.style.fontSize = cardHeight * 0.2 + "px";
 }
 
 function generateQuestion() {
@@ -208,6 +222,7 @@ function newGame() {
         document.getElementById("question").innerHTML = "";
         document.getElementById("question").appendChild(qSpan);
         fitText(qSpan);
+        fitTitle();
         return;
     }
 
@@ -222,6 +237,7 @@ function newGame() {
     document.getElementById("question").innerHTML = "";
     document.getElementById("question").appendChild(qSpan);
     fitText(qSpan);
+    fitTitle();
 
     let choices = [q.answer];
     while (choices.length < 4) {
@@ -238,7 +254,6 @@ function newGame() {
         span.innerText = num;
         card.appendChild(span);
 
-        // 放入 DOM 後再調整字體
         setTimeout(() => fitText(span), 0);
 
         card.onclick = () => {
@@ -268,7 +283,9 @@ function restartGame() {
     newGame();
 }
 
+// 螢幕 resize 時自動調整文字
 window.addEventListener('resize', () => {
+    fitTitle();
     let qSpan = document.querySelector("#question span");
     if(qSpan) fitText(qSpan);
     document.querySelectorAll(".card span").forEach(fitText);
