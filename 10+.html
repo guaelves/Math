@@ -12,12 +12,12 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        flex-direction: column;
+        min-height: 100vh;
     }
 
     .game-container {
         width: 100%;
-        max-width: 520px;
         padding: 20px;
         box-sizing: border-box;
         display: flex;
@@ -26,7 +26,7 @@
         align-items: center;
     }
 
-    /* 題目卡 - 寬高比 2:1，自動縮放文字 */
+    /* 題目卡 - 寬度 100%，2:1 */
     .question-card {
         width: 100%;
         aspect-ratio: 2 / 1;
@@ -43,11 +43,10 @@
         overflow: hidden;
     }
 
-    /* 題目文字自動縮放 */
     .question-card span {
         display: inline-block;
         white-space: nowrap;
-        font-size: calc(80px + 1vw);
+        font-size: calc(80px + 3vw);
     }
 
     .question-card:before {
@@ -65,17 +64,16 @@
 
     /* 答案容器 2x2 */
     .options-container {
-        width: 90%; /* 原本 100%，改成 90%，卡片稍微縮小 */
+        width: 100%;
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        grid-gap: 20px;
-        justify-items: center; /* 卡片水平置中 */
+        grid-template-columns: repeat(2, 1fr);
+        grid-gap: 15px;
+        justify-items: center;
     }
 
-    /* 答案卡 - 寬高比 2:1，文字自動縮放 */
+    /* 答案卡 - 寬度為螢幕的 1/4，2:1 */
     .card {
-        width: 100%;
-        max-width: 220px; /* 限制卡片最大寬度 */
+        width: 25vw; /* 1/4 螢幕寬度 */
         aspect-ratio: 2 / 1;
         background: #f0f0f0;
         border-radius: 12px;
@@ -90,11 +88,10 @@
         overflow: hidden;
     }
 
-    /* 答案文字自動縮放 */
     .card span {
         display: inline-block;
         white-space: nowrap;
-        font-size: calc(50px + 1vw);
+        font-size: calc(20px + 2vw);
     }
 
     .card:hover {
@@ -141,6 +138,19 @@
         50% { transform: translateX(6px); }
         75% { transform: translateX(-6px); }
         100% { transform: translateX(0); }
+    }
+
+    /* 手機橫豎屏自動縮放 */
+    @media (max-width: 480px) {
+        .card {
+            width: 35vw; /* 手機螢幕上稍微大一些 */
+        }
+        .card span {
+            font-size: calc(16px + 3vw);
+        }
+        .question-card span {
+            font-size: calc(50px + 4vw);
+        }
     }
 </style>
 </head>
