@@ -2,62 +2,98 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>皮克敏乘法冒險</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>皮克敏乘法冒險 - 寬螢幕版</title>
     <style>
         :root {
             --red: #ff5252; --yellow: #ffd740; --blue: #448aff;
             --purple: #9c27b0; --white: #ffffff; --rock: #607d8b;
             --wing: #f48fb1; --ice: #b3e5fc; --ghost: #ccff00;
         }
-        body { font-family: "Arial", "Microsoft JhengHei", sans-serif; background-color: #f1f8e9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #game-box { background: white; padding: 25px; border-radius: 40px; box-shadow: 0 15px 0 #aed581; text-align: center; width: 480px; position: relative; }
+        body { 
+            font-family: "Arial", "Microsoft JhengHei", sans-serif; 
+            background-color: #f1f8e9; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+            overflow: hidden; /* 防止滾動 */
+        }
+
+        #game-box { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 30px; 
+            box-shadow: 0 10px 0 #aed581; 
+            text-align: center; 
+            width: 98vw;      /* 螢幕寬度的 98% */
+            height: 70vh;     /* 螢幕高度的 70% */
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+        }
         
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 10px; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; height: 40px; }
         select { padding: 5px; border-radius: 10px; border: 2px solid #8bc34a; font-size: 16px; cursor: pointer; }
-        .progress-container { width: 100%; height: 12px; background: #eee; border-radius: 6px; margin-bottom: 15px; overflow: hidden; }
+        
+        .progress-container { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin-bottom: 10px; overflow: hidden; }
         #progress-bar { width: 0%; height: 100%; background: #4caf50; transition: 0.4s; }
 
-        .stage { height: 160px; background: #fffde7; border-radius: 30px; border: 4px solid #fff176; margin-bottom: 25px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .monster { font-size: 65px; margin-bottom: 5px; transition: 0.4s; }
-        .math { font-size: 68px; font-weight: bold; color: #33691e; }
-
-        .choice-row { display: flex; justify-content: space-around; gap: 12px; }
-        .pikmin-btn {
-            background: #fff; border: 3px solid #eee; border-radius: 25px; padding: 15px 10px; cursor: pointer;
-            flex: 1; transition: 0.2s; display: flex; flex-direction: column; align-items: center;
+        /* 題目區：設定為 2 倍權重 */
+        .stage { 
+            flex: 2; 
+            background: #fffde7; 
+            border-radius: 20px; 
+            border: 4px solid #fff176; 
+            margin-bottom: 15px; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
         }
-        .pikmin-btn:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: #8bc34a; }
+        .monster { font-size: clamp(40px, 10vh, 80px); margin-bottom: 5px; transition: 0.4s; }
+        .math { font-size: clamp(50px, 12vh, 100px); font-weight: bold; color: #33691e; }
 
-        /* --- 皮克敏繪圖核心 --- */
-        .pikmin-art { width: 70px; height: 85px; position: relative; margin-bottom: 8px; }
-        .p-stem { width: 3px; height: 25px; background: #5d4037; position: absolute; top: 0; left: 34px; z-index: 1; }
-        .p-body { width: 42px; height: 48px; border-radius: 45% 45% 42% 42%; border: 2.5px solid #333; position: absolute; bottom: 0; left: 14px; z-index: 2; }
+        /* 答案區：設定為 1 倍權重 (題目的一半) */
+        .choice-row { 
+            flex: 1; 
+            display: flex; 
+            justify-content: space-around; 
+            gap: 10px; 
+        }
         
-        /* 眼睛樣式 */
-        .p-eye-socket { width: 15px; height: 17px; background: white; border-radius: 50%; border: 1.8px solid #333; position: absolute; top: 12px; }
-        .p-pupil { width: 7px; height: 8px; background: black; border-radius: 50%; position: absolute; top: 4.5px; left: 4px; }
-        .eye-l { left: -3px; }
-        .eye-r { right: -3px; }
+        .pikmin-btn {
+            background: #fff; border: 3px solid #eee; border-radius: 20px; 
+            cursor: pointer; flex: 1; transition: 0.2s; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .pikmin-btn:hover { transform: translateY(-5px); border-color: #8bc34a; }
 
-        /* 三種頭部狀態 */
-        .p-leaf { width: 24px; height: 14px; background: #4caf50; border-radius: 50% 0; border: 1.5px solid #2e7d32; position: absolute; top: -10px; left: 34px; transform: rotate(-20deg); z-index: 3; }
-        .p-bud { width: 14px; height: 18px; background: #fffde7; border-radius: 50% 50% 20% 20%; border: 2px solid #81c784; position: absolute; top: -12px; left: 28px; z-index: 3; }
-        .p-bud::after { content:''; width: 14px; height: 6px; background: #81c784; position: absolute; bottom: 0; border-radius: 0 0 10px 10px; }
-        .p-flower { position: absolute; top: -24px; left: 22px; font-size: 28px; z-index: 3; }
+        /* 皮克敏繪圖縮放適應高度 */
+        .pikmin-art { width: 60px; height: 75px; position: relative; transform: scale(0.9); }
+        .p-stem { width: 3px; height: 20px; background: #5d4037; position: absolute; top: 0; left: 28px; z-index: 1; }
+        .p-body { width: 36px; height: 42px; border-radius: 45%; border: 2px solid #333; position: absolute; bottom: 0; left: 12px; z-index: 2; }
+        .p-eye-socket { width: 12px; height: 14px; background: white; border-radius: 50%; border: 1.5px solid #333; position: absolute; top: 10px; }
+        .p-pupil { width: 6px; height: 7px; background: black; border-radius: 50%; position: absolute; top: 3.5px; left: 3px; }
+        .eye-l { left: -2px; }
+        .eye-r { right: -2px; }
+        .p-leaf { width: 20px; height: 12px; background: #4caf50; border-radius: 50% 0; border: 1.2px solid #2e7d32; position: absolute; top: -8px; left: 28px; transform: rotate(-20deg); z-index: 3; }
+        .p-flower { position: absolute; top: -20px; left: 18px; font-size: 24px; z-index: 3; }
 
-        .num { font-size: 34px; font-weight: bold; color: #444; }
-        #msg { margin-top: 15px; font-size: 20px; font-weight: bold; min-height: 30px; }
+        .num { font-size: clamp(24px, 5vh, 40px); font-weight: bold; color: #444; }
+        #msg { height: 30px; margin-top: 10px; font-size: 18px; font-weight: bold; }
 
-        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); border-radius: 40px; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); border-radius: 30px; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
     </style>
 </head>
 <body>
 
 <div id="game-box">
     <div class="overlay" id="finish-screen">
-        <h1 style="color: #4caf50; font-size: 45px;">🌟 挑戰成功！</h1>
-        <p style="font-size: 24px;">你對皮克敏的了解真是大師級！</p>
-        <button onclick="restartGame()" style="padding: 15px 40px; font-size: 24px; cursor: pointer; background: #4caf50; color: white; border: none; border-radius: 20px; margin-top: 20px; box-shadow: 0 5px 0 #2e7d32;">再來一輪！</button>
+        <h1 style="color: #4caf50; font-size: 36px;">🌟 挑戰成功！</h1>
+        <button onclick="restartGame()" style="padding: 12px 30px; font-size: 20px; cursor: pointer; background: #4caf50; color: white; border: none; border-radius: 15px; box-shadow: 0 5px 0 #2e7d32;">再來一輪！</button>
     </div>
 
     <div class="header">
@@ -120,32 +156,17 @@
     function getHeadHtml() {
         const rand = Math.random();
         if (rand < 0.33) return '<div class="p-leaf"></div>';
-        if (rand < 0.66) return '<div class="p-bud"></div>';
         return '<div class="p-flower">🌸</div>';
     }
 
     function getPikminBody(config) {
-        let eyeHtml = '';
-        if (config.isGhost) {
-            // 幽靈皮：左眼大藍框白底無珠，右眼小藍眼有珠
-            eyeHtml = `
-                <div class="p-eye-socket eye-l" style="background:white; border:2px solid #00bcd4;">
-                    <div class="p-pupil" style="display:none;"></div>
-                </div>
-                <div class="p-eye-socket eye-r" style="background:#00bcd4; width:10px; height:12px; border:none; top:15px; right:0px;">
-                    <div class="p-pupil" style="background:white; width:3px; height:4px; top:4px; left:3.5px;"></div>
-                </div>
-            `;
-        } else {
-            eyeHtml = `
-                <div class="p-eye-socket eye-l" style="background:${config.eye}; border-color:${config.pupil === 'transparent' ? 'transparent' : '#333'}">
-                    <div class="p-pupil" style="background:${config.pupil};"></div>
-                </div>
-                <div class="p-eye-socket eye-r" style="background:${config.eye}; border-color:${config.pupil === 'transparent' ? 'transparent' : '#333'}">
-                    <div class="p-pupil" style="background:${config.pupil};"></div>
-                </div>
-            `;
-        }
+        let eyeHtml = `
+            <div class="p-eye-socket eye-l" style="background:${config.isGhost?'white':config.eye};">
+                <div class="p-pupil" style="background:${config.isGhost?'transparent':config.pupil};"></div>
+            </div>
+            <div class="p-eye-socket eye-r" style="background:${config.isGhost?'white':config.eye};">
+                <div class="p-pupil" style="background:${config.isGhost?'transparent':config.pupil};"></div>
+            </div>`;
         return `<div class="p-body" style="background:var(${config.key})">${eyeHtml}</div>`;
     }
 
@@ -159,7 +180,7 @@
         targetVal = currentBase * n;
         document.getElementById('quest').innerText = `${currentBase} x ${n}`;
         document.getElementById('m-icon').innerText = monsters[Math.floor(Math.random() * monsters.length)];
-        document.getElementById('m-icon').style.transform = "scale(1) rotate(0deg)";
+        document.getElementById('m-icon').style.transform = "scale(1)";
 
         let displayConfigs = [];
         for(let i=0; i<3; i++) {
@@ -180,7 +201,6 @@
         opts.forEach((v, i) => {
             const btn = document.createElement('div');
             btn.className = 'pikmin-btn';
-            
             btn.innerHTML = `
                 <div class="pikmin-art">
                     <div class="p-stem"></div>
@@ -193,13 +213,11 @@
                 if(v === targetVal) {
                     solvedCount++;
                     updateUI();
-                    document.getElementById('msg').innerText = "✨ 嘿咻！擊倒怪物了！";
-                    document.getElementById('msg').style.color = "#43a047";
-                    document.getElementById('m-icon').style.transform = "scale(0) rotate(180deg)";
-                    setTimeout(nextQuestion, 800);
+                    document.getElementById('msg').innerText = "✨ 擊倒怪物了！";
+                    document.getElementById('m-icon').style.transform = "scale(0)";
+                    setTimeout(nextQuestion, 600);
                 } else {
-                    document.getElementById('msg').innerText = "❌ 數量不對，再算一下！";
-                    document.getElementById('msg').style.color = "#d32f2f";
+                    document.getElementById('msg').innerText = "❌ 再算一下！";
                 }
             };
             choicesDiv.appendChild(btn);
