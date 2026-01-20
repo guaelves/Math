@@ -70,13 +70,12 @@
 
         .pikmin-art { width: 35px; height: 50px; position: relative; }
         .p-stem { width: 2px; height: 15px; background: #5d4037; position: absolute; top: 5px; left: 16px; }
-        .p-body { width: 22px; height: 28px; border-radius: 45%; border: 1.5px solid #333; position: absolute; bottom: 0; left: 6px; }
+        .p-body { width: 22px; height: 28px; border-radius: 45%; border: 1px solid #333; position: absolute; bottom: 0; left: 6px; }
         
         .p-eye-socket { width: 8px; height: 10px; background: white; border-radius: 50%; border: 1.5px solid #333; position: absolute; top: 5px; }
         .p-pupil { width: 4px; height: 5px; background: black; border-radius: 50%; position: absolute; top: 2.5px; left: 2px; }
         .eye-l { left: -1px; } .eye-r { right: -1px; }
 
-        /* 幽靈眼還原 */
         .ghost-eye-l { border: 1.5px solid #448aff !important; }
         .ghost-eye-l .p-pupil { background: transparent !important; }
         .ghost-eye-r { border: none !important; background: transparent !important; }
@@ -123,7 +122,7 @@
     <div id="msg">發現目標！派出皮克敏！</div>
 
     <div id="collection-container">
-        <div class="collection-hint">每收集3隻即可進化，加油！</div>
+        <div class="collection-hint">每收集3隻同型態即可進化，加油！</div>
         <div class="collection-row" id="row-leaf"></div>
         <div class="collection-row" id="row-bud"></div>
         <div class="collection-row" id="row-flower"></div>
@@ -197,16 +196,25 @@
 
     function handleReward() {
         let randIdx = Math.floor(Math.random() * pikminConfig.length);
-        inventory[randIdx].leaf += 1;
-        let log = `獲得了 1 隻葉子版皮克敏！`;
+        let targetType = "leaf";
+        
+        // 核心邏輯微調：如果已經有花苞，獎勵會優先累計到花苞上，不再卡在葉子
+        if (inventory[randIdx].bud > 0 || inventory[randIdx].leaf >= 2) {
+            targetType = "bud";
+            if (inventory[randIdx].leaf >= 3) inventory[randIdx].leaf = 0; // 清除滿掉的葉子
+        }
 
+        inventory[randIdx][targetType] += 1;
+        let log = `獲得了 1 隻 ${targetType === 'leaf' ? '葉子' : '花苞'}版皮克敏！`;
+
+        // 進化檢查
         if (inventory[randIdx].leaf >= 3) {
-            inventory[randIdx].leaf -= 3;
+            inventory[randIdx].leaf = 0;
             inventory[randIdx].bud += 1;
             log += `\n✨ 3隻葉子進化成了【花苞版】！`;
         }
         if (inventory[randIdx].bud >= 3) {
-            inventory[randIdx].bud -= 3;
+            inventory[randIdx].bud = 0;
             inventory[randIdx].flower += 1;
             log += `\n🌸 3隻花苞進化成了【花朵版】！`;
         }
@@ -237,7 +245,6 @@
         }
         opts.sort(() => Math.random() - 0.5);
 
-        // 重新還原：每一題的三個選項要有葉子、花苞、花朵
         let types = ['leaf', 'bud', 'flower'].sort(() => Math.random() - 0.5);
         let configs = [...pikminConfig].sort(() => Math.random() - 0.5).slice(0, 3);
 
