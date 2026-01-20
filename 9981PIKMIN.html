@@ -23,26 +23,14 @@
             box-sizing: border-box; position: relative;
         }
 
-        /* 圖鑑區調整：隨螢幕寬度縮放並保持一列 */
         #collection-book {
             margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 20px;
-            display: flex; 
-            justify-content: space-around; 
-            align-items: center;
-            gap: 2px; 
-            border: 2px dashed #aed581;
-            flex-wrap: nowrap; /* 強制不換行 */
-            overflow: hidden;
+            display: flex; justify-content: space-around; align-items: center;
+            gap: 2px; border: 2px dashed #aed581; flex-wrap: nowrap; overflow: hidden;
         }
         .book-item { 
-            flex: 1; 
-            max-width: 50px; 
-            aspect-ratio: 1/1.2;
-            position: relative; 
-            opacity: 0.2; 
-            filter: grayscale(1); 
-            transition: 0.5s; 
-            transform: scale(0.8);
+            flex: 1; max-width: 50px; aspect-ratio: 1/1.2; position: relative; 
+            opacity: 0.2; filter: grayscale(1); transition: 0.5s; transform: scale(0.8);
         }
         .book-item.unlocked { opacity: 1; filter: grayscale(0); transform: scale(0.9) translateY(-5px); }
 
@@ -57,10 +45,18 @@
         .math { font-size: clamp(50px, 12vh, 100px); font-weight: bold; color: #33691e; }
 
         .choice-row { flex: 1.5; display: flex; justify-content: space-around; gap: 10px; }
-        .pikmin-btn { background: #fff; border: 3px solid #eee; border-radius: 20px; cursor: pointer; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; }
-        .pikmin-btn:hover { transform: translateY(-5px); border-color: #8bc34a; }
+        
+        /* 增加 outline:none 並確保點擊後外框消失 */
+        .pikmin-btn { 
+            background: #fff; border: 3px solid #eee; border-radius: 20px; 
+            cursor: pointer; flex: 1; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; transition: 0.2s;
+            outline: none; -webkit-tap-highlight-color: transparent;
+        }
+        /* 僅在非觸控裝置顯示 hover 效果，或確保狀態能被清除 */
+        .pikmin-btn:active { background: #f0f0f0; }
+        .pikmin-btn:focus { border-color: #8bc34a; }
 
-        /* 皮克敏繪圖核心 */
         .pikmin-art { width: 40px; height: 60px; position: relative; }
         .p-stem { width: 2px; height: 20px; background: #5d4037; position: absolute; top: 5px; left: 19px; }
         .p-body { width: 26px; height: 32px; border-radius: 45%; border: 1.5px solid #333; position: absolute; bottom: 0; left: 7px; }
@@ -68,7 +64,6 @@
         .p-pupil { width: 5px; height: 6px; background: black; border-radius: 50%; position: absolute; top: 3px; left: 2.5px; }
         .eye-l { left: -1px; } .eye-r { right: -1px; }
 
-        /* 幽靈眼調整：右眼只有小藍點眼珠 */
         .ghost-eye-l { border: 1.5px solid #448aff !important; }
         .ghost-eye-l .p-pupil { background: transparent !important; }
         .ghost-eye-r { border: none !important; background: transparent !important; }
@@ -242,10 +237,13 @@
         choicesDiv.innerHTML = '';
 
         opts.forEach((v, i) => {
-            const btn = document.createElement('div');
+            const btn = document.createElement('button'); // 改用 button 標籤
             btn.className = 'pikmin-btn';
             btn.innerHTML = `${createPikminHtml(configs[i], heads[i])}<div class="num">${v}</div>`;
-            btn.onclick = () => {
+            btn.onclick = (e) => {
+                // 強制失去焦點，清除手機上的選取狀態
+                btn.blur();
+                
                 if(v === targetVal) {
                     playSound('correct'); 
                     solvedCount++; 
