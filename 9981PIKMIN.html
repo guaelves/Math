@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>皮克敏乘法冒險</title>
+    <title>皮克敏乘法冒險 - 三階進化版</title>
     <style>
         :root {
             --red: #ff5252; --yellow: #ffd740; --blue: #448aff;
@@ -19,66 +19,77 @@
         #game-box { 
             background: white; padding: 15px; border-radius: 30px; 
             box-shadow: 0 10px 0 #aed581; text-align: center; 
-            width: 98vw; height: 85vh; display: flex; flex-direction: column; 
+            width: 98vw; height: 95vh; display: flex; flex-direction: column; 
             box-sizing: border-box; position: relative;
         }
 
-        #collection-book {
-            margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 20px;
-            display: flex; justify-content: space-around; align-items: center;
-            gap: 2px; border: 2px dashed #aed581; flex-wrap: nowrap; overflow: hidden;
+        /* 圖鑑區容器 */
+        #collection-container {
+            margin-top: 10px; padding: 5px; background: #e8f5e9; border-radius: 20px;
+            display: flex; flex-direction: column; border: 2px dashed #aed581;
+            overflow-y: auto;
         }
-        .book-item { 
-            flex: 1; max-width: 50px; aspect-ratio: 1/1.2; position: relative; 
-            opacity: 0.2; filter: grayscale(1); transition: 0.5s; transform: scale(0.8);
-        }
-        .book-item.unlocked { opacity: 1; filter: grayscale(0); transform: scale(0.9) translateY(-5px); }
 
-        .header { display: flex; justify-content: space-between; align-items: center; height: 40px; margin-bottom: 5px;}
-        select { padding: 5px; border-radius: 10px; border: 2px solid #8bc34a; font-size: 16px; }
+        /* 新增提示文字樣式 */
+        .collection-hint {
+            font-size: 14px;
+            color: #2e7d32;
+            font-weight: bold;
+            padding: 8px 0 4px 0;
+            background: #f1f8e9;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .collection-row {
+            display: flex; justify-content: space-around; align-items: center;
+            gap: 2px; flex-wrap: nowrap; padding: 5px 0; border-bottom: 1px solid #c8e6c9;
+        }
+        .collection-row:last-child { border-bottom: none; }
+
+        .book-item { 
+            flex: 1; max-width: 45px; aspect-ratio: 1/1.2; position: relative; 
+            opacity: 0.15; filter: grayscale(1); transition: 0.5s; transform: scale(0.8);
+        }
+        .book-item.unlocked { opacity: 1; filter: grayscale(0); transform: scale(0.9); }
         
-        .progress-container { width: 100%; height: 10px; background: #eee; border-radius: 5px; margin-bottom: 10px; overflow: hidden; }
+        .count-badge {
+            position: absolute; top: -5px; right: -5px; background: #ff5252;
+            color: white; font-size: 10px; padding: 2px 5px; border-radius: 10px;
+            font-weight: bold; z-index: 10; border: 1px solid white;
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; height: 35px; margin-bottom: 5px;}
+        select { padding: 5px; border-radius: 10px; border: 2px solid #8bc34a; font-size: 14px; }
+        .progress-container { width: 100%; height: 8px; background: #eee; border-radius: 5px; margin-bottom: 5px; overflow: hidden; }
         #progress-bar { width: 0%; height: 100%; background: #4caf50; transition: 0.4s; }
 
-        .stage { flex: 2; background: #fffde7; border-radius: 20px; border: 4px solid #fff176; margin-bottom: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .monster { font-size: clamp(40px, 10vh, 80px); transition: 0.4s; }
-        .math { font-size: clamp(50px, 12vh, 100px); font-weight: bold; color: #33691e; }
+        .stage { flex: 1.5; background: #fffde7; border-radius: 20px; border: 4px solid #fff176; margin-bottom: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .monster { font-size: clamp(30px, 8vh, 60px); }
+        .math { font-size: clamp(40px, 10vh, 80px); font-weight: bold; color: #33691e; }
 
-        .choice-row { flex: 1.5; display: flex; justify-content: space-around; gap: 10px; }
-        
+        .choice-row { flex: 1.2; display: flex; justify-content: space-around; gap: 8px; }
         .pikmin-btn { 
             background: #fff; border: 3px solid #eee; border-radius: 20px; 
             cursor: pointer; flex: 1; display: flex; flex-direction: column; 
-            align-items: center; justify-content: center; transition: 0.1s;
-            outline: none; -webkit-tap-highlight-color: transparent;
+            align-items: center; justify-content: center; outline: none; -webkit-tap-highlight-color: transparent;
         }
+        .pikmin-btn:focus { border: 5px solid #8bc34a; background: #f1f8e9; }
 
-        /* 答案點擊時的選取框效果 */
-        .pikmin-btn:focus, .pikmin-btn:active { 
-            border: 5px solid #8bc34a; 
-            background: #f1f8e9;
-            box-shadow: 0 0 15px rgba(139, 195, 74, 0.5);
-            transform: scale(0.95);
-        }
-
-        .pikmin-art { width: 40px; height: 60px; position: relative; }
-        .p-stem { width: 2px; height: 20px; background: #5d4037; position: absolute; top: 5px; left: 19px; }
-        .p-body { width: 26px; height: 32px; border-radius: 45%; border: 1.5px solid #333; position: absolute; bottom: 0; left: 7px; }
-        .p-eye-socket { width: 10px; height: 12px; background: white; border-radius: 50%; border: 1px solid #333; position: absolute; top: 6px; }
-        .p-pupil { width: 5px; height: 6px; background: black; border-radius: 50%; position: absolute; top: 3px; left: 2.5px; }
+        .pikmin-art { width: 35px; height: 50px; position: relative; }
+        .p-stem { width: 2px; height: 15px; background: #5d4037; position: absolute; top: 5px; left: 16px; }
+        .p-body { width: 22px; height: 28px; border-radius: 45%; border: 1px solid #333; position: absolute; bottom: 0; left: 6px; }
+        .p-eye-socket { width: 8px; height: 10px; background: white; border-radius: 50%; border: 1px solid #333; position: absolute; top: 5px; }
+        .p-pupil { width: 4px; height: 5px; background: black; border-radius: 50%; position: absolute; top: 2.5px; left: 2px; }
         .eye-l { left: -1px; } .eye-r { right: -1px; }
+        .ghost-eye-l { border: 1px solid #448aff !important; } .ghost-eye-r { border: none !important; background: transparent !important; }
+        .ghost-eye-r .p-pupil { background: #448aff !important; }
 
-        .ghost-eye-l { border: 1.5px solid #448aff !important; }
-        .ghost-eye-l .p-pupil { background: transparent !important; }
-        .ghost-eye-r { border: none !important; background: transparent !important; }
-        .ghost-eye-r .p-pupil { width: 4px; height: 4px; background: #448aff !important; top: 4px; left: 3px; }
+        .p-leaf { width: 15px; height: 10px; background: #4caf50; border-radius: 50% 0; border: 1px solid #2e7d32; position: absolute; top: -3px; left: 16px; transform: rotate(-20deg); }
+        .p-bud { width: 10px; height: 12px; background: #fb8c00; border-radius: 50%; border: 1px solid #e65100; position: absolute; top: -5px; left: 12px; }
+        .p-flower { position: absolute; top: -12px; left: 8px; font-size: 16px; }
 
-        .p-leaf { width: 18px; height: 12px; background: #4caf50; border-radius: 50% 0; border: 1px solid #2e7d32; position: absolute; top: -5px; left: 19px; transform: rotate(-20deg); }
-        .p-bud { width: 10px; height: 14px; background: #fb8c00; border-radius: 50%; border: 1px solid #e65100; position: absolute; top: -8px; left: 15px; }
-        .p-flower { position: absolute; top: -15px; left: 11px; font-size: 18px; }
-
-        .num { font-size: 28px; font-weight: bold; color: #444; }
-        #msg { height: 30px; margin-top: 5px; font-weight: bold; color: #555; }
+        .num { font-size: 24px; font-weight: bold; color: #444; }
+        #msg { height: 25px; font-weight: bold; color: #555; font-size: 14px; }
 
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); border-radius: 30px; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
     </style>
@@ -87,8 +98,8 @@
 
 <div id="game-box">
     <div class="overlay" id="finish-screen">
-        <h1 id="win-title" style="color: #4caf50; margin: 10px;">🌟 挑戰成功！</h1>
-        <div id="unlock-msg" style="margin-bottom: 15px; font-weight: bold; color: #f57c00;"></div>
+        <h1 style="color: #4caf50; margin: 10px;">🌟 挑戰成功！</h1>
+        <div id="unlock-msg" style="margin-bottom: 15px; font-weight: bold; color: #f57c00; white-space: pre-wrap;"></div>
         <button onclick="restartGame()" style="padding: 12px 30px; font-size: 20px; cursor: pointer; background: #4caf50; color: white; border: none; border-radius: 15px;">下一場冒險！</button>
     </div>
 
@@ -113,116 +124,99 @@
     <div class="choice-row" id="choices"></div>
     <div id="msg">發現目標！派出皮克敏！</div>
 
-    <div id="collection-book"></div>
+    <div id="collection-container">
+        <div class="collection-hint">每收集3隻即可進化，加油！</div>
+        <div class="collection-row" id="row-leaf"></div>
+        <div class="collection-row" id="row-bud"></div>
+        <div class="collection-row" id="row-flower"></div>
+    </div>
 </div>
 
 <script>
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type) {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
         if (type === 'correct') {
-            osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(523, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
         } else {
             osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-            osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.2);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
         }
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
     }
 
     const pikminConfig = [
-        { id: 0, name: '紅皮克敏', key: '--red' },
-        { id: 1, name: '黃皮克敏', key: '--yellow' },
-        { id: 2, name: '藍皮克敏', key: '--blue' },
-        { id: 3, name: '紫皮克敏', key: '--purple' },
-        { id: 4, name: '白皮克敏', key: '--white', eye: '#ff5252', pupil: 'transparent' },
-        { id: 5, name: '岩石皮克敏', key: '--rock' },
-        { id: 6, name: '羽翅皮克敏', key: '--wing', eye: '#e1f5fe', pupil: 'transparent' },
-        { id: 7, name: '冰凍皮克敏', key: '--ice' },
-        { id: 8, name: '發光皮克敏', key: '--ghost', isGhost: true }
+        { id: 0, key: '--red' }, { id: 1, key: '--yellow' }, { id: 2, key: '--blue' },
+        { id: 3, key: '--purple' }, { id: 4, key: '--white', eye: '#ff5252', pupil: 'transparent' },
+        { id: 5, key: '--rock' }, { id: 6, key: '--wing', eye: '#e1f5fe', pupil: 'transparent' },
+        { id: 7, key: '--ice' }, { id: 8, key: '--ghost', isGhost: true }
     ];
 
-    let unlocked = JSON.parse(localStorage.getItem('pikmin_collection')) || [];
+    let inventory = JSON.parse(localStorage.getItem('pikmin_inventory')) || 
+                    pikminConfig.map(p => ({ leaf: 0, bud: 0, flower: 0 }));
+
     let questionPool = [], solvedCount = 0, targetVal = 0;
 
-    function createPikminHtml(config, headHtml = '<div class="p-leaf"></div>') {
+    function createPikminHtml(config, type) {
+        let headHtml = type === 'leaf' ? '<div class="p-leaf"></div>' : 
+                       type === 'bud' ? '<div class="p-bud"></div>' : '<div class="p-flower">🌸</div>';
         let lClass = config.isGhost ? "p-eye-socket eye-l ghost-eye-l" : "p-eye-socket eye-l";
         let rClass = config.isGhost ? "p-eye-socket eye-r ghost-eye-r" : "p-eye-socket eye-r";
         return `
             <div class="pikmin-art">
-                <div class="p-stem"></div>
-                ${headHtml}
+                <div class="p-stem"></div>${headHtml}
                 <div class="p-body" style="background:var(${config.key})">
-                    <div class="${lClass}" style="background:${config.eye || 'white'};">
-                        <div class="p-pupil" style="background:${config.pupil || 'black'};"></div>
-                    </div>
-                    <div class="${rClass}" style="background:${config.eye || 'white'};">
-                        <div class="p-pupil" style="background:${config.pupil || 'black'};"></div>
-                    </div>
+                    <div class="${lClass}" style="background:${config.eye || 'white'}"><div class="p-pupil"></div></div>
+                    <div class="${rClass}" style="background:${config.eye || 'white'}"><div class="p-pupil"></div></div>
                 </div>
             </div>`;
     }
 
-    function initCollection() {
-        const book = document.getElementById('collection-book');
-        book.innerHTML = '';
-        pikminConfig.forEach(p => {
-            const wrap = document.createElement('div');
-            wrap.className = `book-item ${unlocked.includes(p.id) ? 'unlocked' : ''}`;
-            wrap.innerHTML = createPikminHtml(p);
-            book.appendChild(wrap);
+    function updateInventoryDisplay() {
+        ['leaf', 'bud', 'flower'].forEach(type => {
+            const row = document.getElementById(`row-${type}`);
+            row.innerHTML = '';
+            pikminConfig.forEach((p, index) => {
+                const count = inventory[index][type];
+                const item = document.createElement('div');
+                item.className = `book-item ${count > 0 ? 'unlocked' : ''}`;
+                item.innerHTML = createPikminHtml(p, type) + (count > 0 ? `<div class="count-badge">${count}</div>` : '');
+                row.appendChild(item);
+            });
         });
     }
 
-    function restartGame() {
-        const mode = document.getElementById('base-num').value;
-        solvedCount = 0;
-        document.getElementById('msg').innerText = "發現目標！派出皮克敏！";
-        if (mode === "mixed") {
-            let all = [];
-            for (let b = 2; b <= 9; b++) for (let n = 1; n <= 9; n++) all.push({ b, n });
-            questionPool = all.sort(() => Math.random() - 0.5).slice(0, 10);
-        } else {
-            let b = parseInt(mode);
-            questionPool = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5).slice(0,10).map(n => ({ b, n }));
-        }
-        document.getElementById('finish-screen').style.display = 'none';
-        initCollection();
-        updateUI();
-        nextQuestion();
-    }
+    function handleReward() {
+        let randIdx = Math.floor(Math.random() * pikminConfig.length);
+        inventory[randIdx].leaf += 1;
+        let log = `獲得了 1 隻葉子版皮克敏！`;
 
-    function updateUI() {
-        document.getElementById('progress-bar').style.width = (solvedCount * 10) + '%';
-        document.getElementById('q-num').innerText = Math.min(solvedCount + 1, 10);
+        if (inventory[randIdx].leaf >= 3) {
+            inventory[randIdx].leaf -= 3;
+            inventory[randIdx].bud += 1;
+            log += `\n✨ 3隻葉子進化成了【花苞版】！`;
+        }
+        if (inventory[randIdx].bud >= 3) {
+            inventory[randIdx].bud -= 3;
+            inventory[randIdx].flower += 1;
+            log += `\n🌸 3隻花苞進化成了【花朵版】！`;
+        }
+
+        localStorage.setItem('pikmin_inventory', JSON.stringify(inventory));
+        document.getElementById('unlock-msg').innerText = log;
+        updateInventoryDisplay();
     }
 
     function nextQuestion() {
-        // 清除上一題點擊按鈕留下的焦點
         if (document.activeElement) document.activeElement.blur();
-
         if (solvedCount >= 10) {
-            let locked = pikminConfig.filter(p => !unlocked.includes(p.id));
-            if (locked.length > 0) {
-                let newP = locked[Math.floor(Math.random() * locked.length)];
-                unlocked.push(newP.id);
-                localStorage.setItem('pikmin_collection', JSON.stringify(unlocked));
-                document.getElementById('unlock-msg').innerText = `🎁 獲得了新夥伴！`;
-            } else {
-                document.getElementById('unlock-msg').innerText = `隊伍已滿！你是大師！`;
-            }
+            handleReward();
             document.getElementById('finish-screen').style.display = 'flex';
-            initCollection();
             return;
         }
-
         const q = questionPool[solvedCount];
         targetVal = q.b * q.n;
         document.getElementById('quest').innerText = `${q.b} x ${q.n}`;
@@ -230,7 +224,6 @@
         document.getElementById('m-icon').style.transform = "scale(1)";
         document.getElementById('msg').innerText = "發現目標！派出皮克敏！";
 
-        let configs = [...pikminConfig].sort(() => Math.random() - 0.5).slice(0, 3);
         let opts = [targetVal];
         while(opts.length < 3) {
             let f = q.b * (Math.floor(Math.random() * 9) + 1);
@@ -238,32 +231,49 @@
         }
         opts.sort(() => Math.random() - 0.5);
 
-        let heads = ['<div class="p-leaf"></div>', '<div class="p-bud"></div>', '<div class="p-flower">🌸</div>'].sort(() => Math.random() - 0.5);
-
         const choicesDiv = document.getElementById('choices');
         choicesDiv.innerHTML = '';
-
-        opts.forEach((v, i) => {
+        opts.forEach(v => {
             const btn = document.createElement('button');
             btn.className = 'pikmin-btn';
-            btn.innerHTML = `${createPikminHtml(configs[i], heads[i])}<div class="num">${v}</div>`;
+            let randomP = pikminConfig[Math.floor(Math.random()*9)];
+            btn.innerHTML = `${createPikminHtml(randomP, 'leaf')}<div class="num">${v}</div>`;
             btn.onclick = () => {
                 if(v === targetVal) {
-                    playSound('correct'); 
-                    solvedCount++; 
-                    updateUI();
+                    playSound('correct'); solvedCount++; updateUI();
                     document.getElementById('msg').innerText = "✨ 擊倒怪物了！";
                     document.getElementById('m-icon').style.transform = "scale(0)";
                     setTimeout(nextQuestion, 600);
                 } else {
-                    playSound('wrong');
-                    document.getElementById('msg').innerText = "❌ 再算一下！";
+                    playSound('wrong'); document.getElementById('msg').innerText = "❌ 再算一下！";
                 }
             };
             choicesDiv.appendChild(btn);
         });
     }
-    initCollection();
+
+    function updateUI() {
+        document.getElementById('progress-bar').style.width = (solvedCount * 10) + '%';
+        document.getElementById('q-num').innerText = Math.min(solvedCount + 1, 10);
+    }
+
+    function restartGame() {
+        const mode = document.getElementById('base-num').value;
+        solvedCount = 0;
+        if (mode === "mixed") {
+            let all = []; for (let b = 2; b <= 9; b++) for (let n = 1; n <= 9; n++) all.push({ b, n });
+            questionPool = all.sort(() => Math.random() - 0.5).slice(0, 10);
+        } else {
+            let b = parseInt(mode);
+            questionPool = [1,2,3,4,5,6,7,8,9,5].sort(() => Math.random() - 0.5).map(n => ({ b, n }));
+        }
+        document.getElementById('finish-screen').style.display = 'none';
+        updateUI();
+        updateInventoryDisplay();
+        nextQuestion();
+    }
+
+    updateInventoryDisplay();
     restartGame();
 </script>
 </body>
