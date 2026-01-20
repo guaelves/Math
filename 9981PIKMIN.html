@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>皮克敏乘法冒險 - 三階進化版</title>
+    <title>皮克敏乘法冒險</title>
     <style>
         :root {
             --red: #ff5252; --yellow: #ffd740; --blue: #448aff;
@@ -23,21 +23,14 @@
             box-sizing: border-box; position: relative;
         }
 
-        /* 圖鑑區容器 */
         #collection-container {
             margin-top: 10px; padding: 5px; background: #e8f5e9; border-radius: 20px;
             display: flex; flex-direction: column; border: 2px dashed #aed581;
             overflow-y: auto;
         }
 
-        /* 新增提示文字樣式 */
         .collection-hint {
-            font-size: 14px;
-            color: #2e7d32;
-            font-weight: bold;
-            padding: 8px 0 4px 0;
-            background: #f1f8e9;
-            border-radius: 15px 15px 0 0;
+            font-size: 14px; color: #2e7d32; font-weight: bold; padding: 8px 0 4px 0;
         }
 
         .collection-row {
@@ -77,12 +70,17 @@
 
         .pikmin-art { width: 35px; height: 50px; position: relative; }
         .p-stem { width: 2px; height: 15px; background: #5d4037; position: absolute; top: 5px; left: 16px; }
-        .p-body { width: 22px; height: 28px; border-radius: 45%; border: 1px solid #333; position: absolute; bottom: 0; left: 6px; }
-        .p-eye-socket { width: 8px; height: 10px; background: white; border-radius: 50%; border: 1px solid #333; position: absolute; top: 5px; }
+        .p-body { width: 22px; height: 28px; border-radius: 45%; border: 1.5px solid #333; position: absolute; bottom: 0; left: 6px; }
+        
+        .p-eye-socket { width: 8px; height: 10px; background: white; border-radius: 50%; border: 1.5px solid #333; position: absolute; top: 5px; }
         .p-pupil { width: 4px; height: 5px; background: black; border-radius: 50%; position: absolute; top: 2.5px; left: 2px; }
         .eye-l { left: -1px; } .eye-r { right: -1px; }
-        .ghost-eye-l { border: 1px solid #448aff !important; } .ghost-eye-r { border: none !important; background: transparent !important; }
-        .ghost-eye-r .p-pupil { background: #448aff !important; }
+
+        /* 幽靈眼還原 */
+        .ghost-eye-l { border: 1.5px solid #448aff !important; }
+        .ghost-eye-l .p-pupil { background: transparent !important; }
+        .ghost-eye-r { border: none !important; background: transparent !important; }
+        .ghost-eye-r .p-pupil { width: 3px; height: 3px; background: #448aff !important; top: 4px; left: 3px; }
 
         .p-leaf { width: 15px; height: 10px; background: #4caf50; border-radius: 50% 0; border: 1px solid #2e7d32; position: absolute; top: -3px; left: 16px; transform: rotate(-20deg); }
         .p-bud { width: 10px; height: 12px; background: #fb8c00; border-radius: 50%; border: 1px solid #e65100; position: absolute; top: -5px; left: 12px; }
@@ -150,9 +148,12 @@
 
     const pikminConfig = [
         { id: 0, key: '--red' }, { id: 1, key: '--yellow' }, { id: 2, key: '--blue' },
-        { id: 3, key: '--purple' }, { id: 4, key: '--white', eye: '#ff5252', pupil: 'transparent' },
-        { id: 5, key: '--rock' }, { id: 6, key: '--wing', eye: '#e1f5fe', pupil: 'transparent' },
-        { id: 7, key: '--ice' }, { id: 8, key: '--ghost', isGhost: true }
+        { id: 3, key: '--purple' }, 
+        { id: 4, key: '--white', eye: '#ff5252', pupil: 'transparent' },
+        { id: 5, key: '--rock' }, 
+        { id: 6, key: '--wing', eye: '#e1f5fe', pupil: 'transparent' },
+        { id: 7, key: '--ice' }, 
+        { id: 8, key: '--ghost', isGhost: true }
     ];
 
     let inventory = JSON.parse(localStorage.getItem('pikmin_inventory')) || 
@@ -165,12 +166,17 @@
                        type === 'bud' ? '<div class="p-bud"></div>' : '<div class="p-flower">🌸</div>';
         let lClass = config.isGhost ? "p-eye-socket eye-l ghost-eye-l" : "p-eye-socket eye-l";
         let rClass = config.isGhost ? "p-eye-socket eye-r ghost-eye-r" : "p-eye-socket eye-r";
+        
         return `
             <div class="pikmin-art">
                 <div class="p-stem"></div>${headHtml}
                 <div class="p-body" style="background:var(${config.key})">
-                    <div class="${lClass}" style="background:${config.eye || 'white'}"><div class="p-pupil"></div></div>
-                    <div class="${rClass}" style="background:${config.eye || 'white'}"><div class="p-pupil"></div></div>
+                    <div class="${lClass}" style="background:${config.eye || 'white'}">
+                        <div class="p-pupil" style="background:${config.pupil || 'black'}"></div>
+                    </div>
+                    <div class="${rClass}" style="background:${config.eye || 'white'}">
+                        <div class="p-pupil" style="background:${config.pupil || 'black'}"></div>
+                    </div>
                 </div>
             </div>`;
     }
@@ -231,13 +237,16 @@
         }
         opts.sort(() => Math.random() - 0.5);
 
+        // 重新還原：每一題的三個選項要有葉子、花苞、花朵
+        let types = ['leaf', 'bud', 'flower'].sort(() => Math.random() - 0.5);
+        let configs = [...pikminConfig].sort(() => Math.random() - 0.5).slice(0, 3);
+
         const choicesDiv = document.getElementById('choices');
         choicesDiv.innerHTML = '';
-        opts.forEach(v => {
+        opts.forEach((v, i) => {
             const btn = document.createElement('button');
             btn.className = 'pikmin-btn';
-            let randomP = pikminConfig[Math.floor(Math.random()*9)];
-            btn.innerHTML = `${createPikminHtml(randomP, 'leaf')}<div class="num">${v}</div>`;
+            btn.innerHTML = `${createPikminHtml(configs[i], types[i])}<div class="num">${v}</div>`;
             btn.onclick = () => {
                 if(v === targetVal) {
                     playSound('correct'); solvedCount++; updateUI();
