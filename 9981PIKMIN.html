@@ -23,14 +23,28 @@
             box-sizing: border-box; position: relative;
         }
 
-        /* 圖鑑區：顯示皮克敏縮影 */
+        /* 圖鑑區調整：隨螢幕寬度縮放並保持一列 */
         #collection-book {
             margin-top: 15px; padding: 10px; background: #e8f5e9; border-radius: 20px;
-            display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;
+            display: flex; 
+            justify-content: space-around; 
+            align-items: center;
+            gap: 2px; 
             border: 2px dashed #aed581;
+            flex-wrap: nowrap; /* 強制不換行 */
+            overflow: hidden;
         }
-        .book-item { transform: scale(0.6); width: 40px; height: 50px; position: relative; opacity: 0.2; filter: grayscale(1); transition: 0.5s; }
-        .book-item.unlocked { opacity: 1; filter: grayscale(0); transform: scale(0.7) translateY(-5px); }
+        .book-item { 
+            flex: 1; 
+            max-width: 50px; 
+            aspect-ratio: 1/1.2;
+            position: relative; 
+            opacity: 0.2; 
+            filter: grayscale(1); 
+            transition: 0.5s; 
+            transform: scale(0.8);
+        }
+        .book-item.unlocked { opacity: 1; filter: grayscale(0); transform: scale(0.9) translateY(-5px); }
 
         .header { display: flex; justify-content: space-between; align-items: center; height: 40px; margin-bottom: 5px;}
         select { padding: 5px; border-radius: 10px; border: 2px solid #8bc34a; font-size: 16px; }
@@ -46,7 +60,7 @@
         .pikmin-btn { background: #fff; border: 3px solid #eee; border-radius: 20px; cursor: pointer; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.2s; }
         .pikmin-btn:hover { transform: translateY(-5px); border-color: #8bc34a; }
 
-        /* 皮克敏繪圖核心樣式 */
+        /* 皮克敏繪圖核心 */
         .pikmin-art { width: 40px; height: 60px; position: relative; }
         .p-stem { width: 2px; height: 20px; background: #5d4037; position: absolute; top: 5px; left: 19px; }
         .p-body { width: 26px; height: 32px; border-radius: 45%; border: 1.5px solid #333; position: absolute; bottom: 0; left: 7px; }
@@ -54,7 +68,7 @@
         .p-pupil { width: 5px; height: 6px; background: black; border-radius: 50%; position: absolute; top: 3px; left: 2.5px; }
         .eye-l { left: -1px; } .eye-r { right: -1px; }
 
-        /* 幽靈眼調整 */
+        /* 幽靈眼調整：右眼只有小藍點眼珠 */
         .ghost-eye-l { border: 1.5px solid #448aff !important; }
         .ghost-eye-l .p-pupil { background: transparent !important; }
         .ghost-eye-r { border: none !important; background: transparent !important; }
@@ -65,7 +79,7 @@
         .p-flower { position: absolute; top: -15px; left: 11px; font-size: 18px; }
 
         .num { font-size: 28px; font-weight: bold; color: #444; }
-        #msg { height: 30px; margin-top: 5px; font-weight: bold; }
+        #msg { height: 30px; margin-top: 5px; font-weight: bold; color: #555; }
 
         .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); border-radius: 30px; display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
     </style>
@@ -139,7 +153,6 @@
     let unlocked = JSON.parse(localStorage.getItem('pikmin_collection')) || [];
     let questionPool = [], solvedCount = 0, targetVal = 0;
 
-    // 獲取皮克敏的 HTML 結構（複用在圖鑑和按鈕）
     function createPikminHtml(config, headHtml = '<div class="p-leaf"></div>') {
         let lClass = config.isGhost ? "p-eye-socket eye-l ghost-eye-l" : "p-eye-socket eye-l";
         let rClass = config.isGhost ? "p-eye-socket eye-r ghost-eye-r" : "p-eye-socket eye-r";
@@ -164,7 +177,7 @@
         pikminConfig.forEach(p => {
             const wrap = document.createElement('div');
             wrap.className = `book-item ${unlocked.includes(p.id) ? 'unlocked' : ''}`;
-            wrap.innerHTML = createPikminHtml(p); // 圖鑑預設用葉子
+            wrap.innerHTML = createPikminHtml(p);
             book.appendChild(wrap);
         });
     }
@@ -172,6 +185,7 @@
     function restartGame() {
         const mode = document.getElementById('base-num').value;
         solvedCount = 0;
+        document.getElementById('msg').innerText = "發現目標！派出皮克敏！";
         if (mode === "mixed") {
             let all = [];
             for (let b = 2; b <= 9; b++) for (let n = 1; n <= 9; n++) all.push({ b, n });
@@ -212,6 +226,7 @@
         document.getElementById('quest').innerText = `${q.b} x ${q.n}`;
         document.getElementById('m-icon').innerText = ['🐞','🕷️','🦀','🐌','🐝','🦋','🍄','👾','🦎','🐸'][Math.floor(Math.random()*10)];
         document.getElementById('m-icon').style.transform = "scale(1)";
+        document.getElementById('msg').innerText = "發現目標！派出皮克敏！";
 
         let configs = [...pikminConfig].sort(() => Math.random() - 0.5).slice(0, 3);
         let opts = [targetVal];
@@ -232,7 +247,10 @@
             btn.innerHTML = `${createPikminHtml(configs[i], heads[i])}<div class="num">${v}</div>`;
             btn.onclick = () => {
                 if(v === targetVal) {
-                    playSound('correct'); solvedCount++; updateUI();
+                    playSound('correct'); 
+                    solvedCount++; 
+                    updateUI();
+                    document.getElementById('msg').innerText = "✨ 擊倒怪物了！";
                     document.getElementById('m-icon').style.transform = "scale(0)";
                     setTimeout(nextQuestion, 600);
                 } else {
