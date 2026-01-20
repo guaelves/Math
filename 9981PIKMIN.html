@@ -43,12 +43,13 @@
             flex: 1; max-width: 45px; aspect-ratio: 1/1.2; position: relative; 
             opacity: 0.15; filter: grayscale(1); transition: 0.5s; transform: scale(0.8);
         }
+        /* 關鍵修改：解鎖後取消灰色濾鏡並維持透明度 1 */
         .book-item.unlocked { opacity: 1; filter: grayscale(0); transform: scale(0.9); }
         
         .count-badge {
             position: absolute; top: -5px; right: -5px; background: #ff5252;
-            color: white; font-size: 10px; padding: 2px 5px; border-radius: 10px;
-            font-weight: bold; z-index: 10; border: 1px solid white;
+            color: white; font-size: 11px; padding: 2px 6px; border-radius: 10px;
+            font-weight: bold; z-index: 10; border: 1.5px solid white;
         }
 
         .header { display: flex; justify-content: space-between; align-items: center; height: 35px; margin-bottom: 5px;}
@@ -95,9 +96,9 @@
 
 <div id="game-box">
     <div class="overlay" id="finish-screen">
-        <h1 style="color: #4caf50; margin: 10px;">🌟 挑戰成功！</h1>
+        <h1 id="win-title" style="color: #4caf50; margin: 10px;">🌟 挑戰成功！</h1>
         <div id="unlock-msg" style="margin-bottom: 15px; font-weight: bold; color: #f57c00; white-space: pre-wrap;"></div>
-        <button onclick="restartGame()" style="padding: 12px 30px; font-size: 20px; cursor: pointer; background: #4caf50; color: white; border: none; border-radius: 15px;">下一場冒險！</button>
+        <button id="next-btn" onclick="restartGame()" style="padding: 12px 30px; font-size: 20px; cursor: pointer; background: #4caf50; color: white; border: none; border-radius: 15px;">下一場冒險！</button>
     </div>
 
     <div class="header">
@@ -122,7 +123,7 @@
     <div id="msg">發現目標！派出皮克敏！</div>
 
     <div id="collection-container">
-        <div class="collection-hint">每收集3隻同型態即可進化，加油！</div>
+        <div class="collection-hint">葉子(2) → 花苞(2) → 花朵(1) 完成收集！</div>
         <div class="collection-row" id="row-leaf"></div>
         <div class="collection-row" id="row-bud"></div>
         <div class="collection-row" id="row-flower"></div>
@@ -146,16 +147,21 @@
     }
 
     const pikminConfig = [
-        { id: 0, key: '--red' }, { id: 1, key: '--yellow' }, { id: 2, key: '--blue' },
-        { id: 3, key: '--purple' }, 
-        { id: 4, key: '--white', eye: '#ff5252', pupil: 'transparent' },
-        { id: 5, key: '--rock' }, 
-        { id: 6, key: '--wing', eye: '#e1f5fe', pupil: 'transparent' },
-        { id: 7, key: '--ice' }, 
-        { id: 8, key: '--ghost', isGhost: true }
+        { id: 0, key: '--red', name: '紅' }, { id: 1, key: '--yellow', name: '黃' }, { id: 2, key: '--blue', name: '藍' },
+        { id: 3, key: '--purple', name: '紫' }, 
+        { id: 4, key: '--white', name: '白', eye: '#ff5252', pupil: 'transparent' },
+        { id: 5, key: '--rock', name: '岩' }, 
+        { id: 6, key: '--wing', name: '羽', eye: '#e1f5fe', pupil: 'transparent' },
+        { id: 7, key: '--ice', name: '冰' }, 
+        { id: 8, key: '--ghost', name: '光', isGhost: true }
     ];
 
-    let inventory = JSON.parse(localStorage.getItem('pikmin_inventory')) || 
+    // 進化門檻設定
+    const LEAF_MAX = 2;
+    const BUD_MAX = 2;
+    const FLOWER_MAX = 1;
+
+    let inventory = JSON.parse(localStorage.getItem('pikmin_inventory_final')) || 
                     pikminConfig.map(p => ({ leaf: 0, bud: 0, flower: 0 }));
 
     let questionPool = [], solvedCount = 0, targetVal = 0;
@@ -187,6 +193,7 @@
             pikminConfig.forEach((p, index) => {
                 const count = inventory[index][type];
                 const item = document.createElement('div');
+                // 只要數量 > 0 就解鎖 (永久亮起)
                 item.className = `book-item ${count > 0 ? 'unlocked' : ''}`;
                 item.innerHTML = createPikminHtml(p, type) + (count > 0 ? `<div class="count-badge">${count}</div>` : '');
                 row.appendChild(item);
@@ -195,33 +202,58 @@
     }
 
     function handleReward() {
-        let randIdx = Math.floor(Math.random() * pikminConfig.length);
-        let targetType = "leaf";
-        
-        // 核心邏輯微調：如果已經有花苞，獎勵會優先累計到花苞上，不再卡在葉子
-        if (inventory[randIdx].bud > 0 || inventory[randIdx].leaf >= 2) {
-            targetType = "bud";
-            if (inventory[randIdx].leaf >= 3) inventory[randIdx].leaf = 0; // 清除滿掉的葉子
+        // 篩選還沒到花朵 1 隻的顏色
+        let availableIndices = [];
+        pikminConfig.forEach((_, i) => {
+            if (inventory[i].flower < FLOWER_MAX) {
+                availableIndices.push(i);
+            }
+        });
+
+        if (availableIndices.length === 0) {
+            document.getElementById('win-title').innerText = "🏆 圖鑑大圓滿！";
+            document.getElementById('unlock-msg').innerText = "所有皮克敏都已綻放！\n你完成了乘法冒險！";
+            return;
         }
 
-        inventory[randIdx][targetType] += 1;
-        let log = `獲得了 1 隻 ${targetType === 'leaf' ? '葉子' : '花苞'}版皮克敏！`;
+        let randIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+        let pName = pikminConfig[randIdx].name;
+        let log = "";
 
-        // 進化檢查
-        if (inventory[randIdx].leaf >= 3) {
-            inventory[randIdx].leaf = 0;
+        // 進化體系邏輯：2 -> 2 -> 1
+        if (inventory[randIdx].leaf < LEAF_MAX && inventory[randIdx].bud === 0 && inventory[randIdx].flower === 0) {
+            inventory[randIdx].leaf += 1;
+            log = `獲得了 ${pName}皮克敏(葉子)！`;
+        } else if (inventory[randIdx].bud < BUD_MAX && inventory[randIdx].flower === 0) {
+            inventory[randIdx].leaf = LEAF_MAX; // 補滿前一階
             inventory[randIdx].bud += 1;
-            log += `\n✨ 3隻葉子進化成了【花苞版】！`;
-        }
-        if (inventory[randIdx].bud >= 3) {
-            inventory[randIdx].bud = 0;
+            log = `進階！${pName}皮克敏長出花苞了！`;
+        } else if (inventory[randIdx].flower < FLOWER_MAX) {
+            inventory[randIdx].leaf = LEAF_MAX;
+            inventory[randIdx].bud = BUD_MAX;
             inventory[randIdx].flower += 1;
-            log += `\n🌸 3隻花苞進化成了【花朵版】！`;
+            log = `太強了！${pName}皮克敏終於開花了！🌸`;
         }
 
-        localStorage.setItem('pikmin_inventory', JSON.stringify(inventory));
-        document.getElementById('unlock-msg').innerText = log;
+        // 檢查是否全圖鑑完成
+        if (inventory.every(p => p.flower >= FLOWER_MAX)) {
+            document.getElementById('win-title').innerText = "🏆 完美收集完成！";
+            document.getElementById('unlock-msg').innerText = "乘法森林充滿了色彩繽紛的花朵！";
+            document.getElementById('next-btn').innerText = "重新開始";
+            document.getElementById('next-btn').onclick = resetProgress;
+        } else {
+            document.getElementById('unlock-msg').innerText = log;
+        }
+
+        localStorage.setItem('pikmin_inventory_final', JSON.stringify(inventory));
         updateInventoryDisplay();
+    }
+
+    function resetProgress() {
+        if (confirm("要清空所有色彩，重新開始收集嗎？")) {
+            localStorage.removeItem('pikmin_inventory_final');
+            location.reload();
+        }
     }
 
     function nextQuestion() {
