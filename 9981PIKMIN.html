@@ -51,11 +51,9 @@
         .m-small .m-cap { width: 50px; height: 22px; background: radial-gradient(circle at 35% 25%, var(--m-color) 20%, #222 100%); }
         .m-small .m-stem { width: 28px; height: 28px; }
 
-        /* 特效 1: 呼吸長大 */
         .effect-growth .m-giant { animation: mush-mega-grow 2.5s infinite alternate ease-in-out; }
         @keyframes mush-mega-grow { 0% { transform: scale(0.8); } 100% { transform: scale(2.0); } }
 
-        /* 特效 2: 五光十色發光 */
         .effect-glow .m-cap { animation: mush-rainbow-glow 2s infinite linear; }
         @keyframes mush-rainbow-glow { 
             0% { filter: hue-rotate(0deg) brightness(1.2) drop-shadow(0 0 10px white); }
@@ -63,14 +61,13 @@
             100% { filter: hue-rotate(360deg) brightness(1.2) drop-shadow(0 0 10px white); }
         }
 
-        /* 特效 3: 火焰燃燒 */
         .effect-fire .m-giant { animation: fire-shimmer 0.1s infinite alternate; }
         .effect-fire .m-giant .m-cap, .effect-fire .m-giant .m-stem { box-shadow: 0 0 20px #ff3d00, 0 0 40px #ff9100; border-color: #ff3d00; filter: saturate(2) brightness(1.2); }
         @keyframes fire-shimmer { 0% { transform: skewX(-1deg) scale(1.01); } 100% { transform: skewX(1deg) scale(0.99); } }
         .m-fire-flare { position: absolute; width: 10px; height: 10px; background: #ffab40; border-radius: 50% 0 50% 50%; opacity: 0; bottom: 40px; box-shadow: 0 0 15px #ff3d00; filter: blur(1px); animation: fire-rise 0.8s infinite ease-in; }
         @keyframes fire-rise { 0% { transform: translateY(0) scale(1) rotate(45deg); opacity: 1; } 100% { transform: translateY(-150px) scale(0) rotate(225deg); opacity: 0; } }
 
-        /* 其他原有樣式... (略，與前版一致以確保運作正常) */
+        /* 怪物樣式 */
         .bulborb { position: relative; width: 180px; height: 120px; background: linear-gradient(to right, var(--bulborb-skin) 40%, var(--bulborb-red) 40%); border-radius: 70px 90px 90px 70px; animation: breathe 2s infinite ease-in-out; }
         .bulborb .eye { position: absolute; width: 35px; height: 45px; background: white; border: 2px solid #333; border-radius: 50%; top: -30px; }
         .bulborb .eye.left { left: 25px; transform: rotate(-10deg); }
@@ -96,12 +93,14 @@
         .blowhog-stripes { position: absolute; width: 100%; height: 100%; border-radius: inherit; background: repeating-linear-gradient(to right, transparent 0, transparent 30px, #ff8a80 30px, #ff8a80 35px); opacity: 0.4; }
         .blowhog-snout { position: absolute; left: -20px; top: 40px; width: 40px; height: 30px; background: #ff8a80; border-radius: 20px 0 0 20px; }
         .leg { position: absolute; width: 10px; height: 20px; background: rgba(0,0,0,0.1); bottom: -15px; border-radius: 5px; }
+        
         @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         @keyframes crawl { 0%, 100% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
         @keyframes hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-40px); } }
         @keyframes emerge { 0%, 100% { transform: translateY(140px); } 50% { transform: translateY(0); } }
         @keyframes move-wraith { 0%, 100% { transform: translateX(-30px); } 50% { transform: translateX(30px); } }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
+
         #collection-container { margin-top: 10px; padding: 5px; background: #e8f5e9; border-radius: 20px; display: flex; flex-direction: column; border: 2px dashed #aed581; overflow-y: auto; }
         .collection-hint { font-size: 14px; color: #2e7d32; font-weight: bold; padding: 8px 0 4px 0; }
         .collection-row { display: flex; justify-content: space-around; align-items: center; gap: 2px; flex-wrap: nowrap; padding: 5px 0; border-bottom: 1px solid #c8e6c9; }
@@ -113,9 +112,37 @@
         .progress-container { width: 100%; height: 8px; background: #eee; border-radius: 5px; margin-bottom: 5px; overflow: hidden; }
         #progress-bar { width: 0%; height: 100%; background: #4caf50; transition: 0.4s; }
         .math { font-size: clamp(40px, 10vh, 80px); font-weight: bold; color: #33691e; z-index: 10; }
+        
+        /* --- 修正後的按鈕選取與回饋樣式 --- */
         .choice-row { flex: 1.2; display: flex; justify-content: space-around; gap: 8px; }
-        .pikmin-btn { background: #fff; border: 3px solid #eee; border-radius: 20px; cursor: pointer; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; outline: none; -webkit-tap-highlight-color: transparent; }
-        .pikmin-btn:focus { border: 5px solid #8bc34a; background: #f1f8e9; }
+        .pikmin-btn { 
+            background: #fff; 
+            border: 3px solid #eee; /* 預設邊框 */
+            border-radius: 20px; 
+            cursor: pointer; 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            outline: none; 
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.15s ease-in-out; /* 增加平滑過渡 */
+        }
+        
+        /* 滑鼠懸停與獲得焦點（鍵盤/點擊）時顯示綠色框線 */
+        .pikmin-btn:hover, .pikmin-btn:focus { 
+            border: 3px solid #8bc34a; 
+            background: #f1f8e9; 
+        }
+
+        /* 點擊按下的瞬間回饋 */
+        .pikmin-btn:active {
+            transform: scale(0.92);
+            border: 3px solid #4caf50;
+            background: #e8f5e9;
+        }
+
         .pikmin-art { width: 35px; height: 50px; position: relative; }
         .p-stem { width: 2px; height: 15px; background: #5d4037; position: absolute; top: 5px; left: 16px; }
         .p-body { width: 22px; height: 28px; border-radius: 45%; border: 1px solid #333; position: absolute; bottom: 0; left: 6px; }
@@ -165,7 +192,6 @@
 </div>
 
 <script>
-    // 這裡維持前一版的所有 JS 邏輯不變，僅整合了圖示標籤
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type) {
         const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
@@ -205,12 +231,14 @@
     const LEAF_MAX = 2; const BUD_MAX = 2; const FLOWER_MAX = 1;
     let inventory = JSON.parse(localStorage.getItem('pikmin_inventory_final')) || pikminConfig.map(p => ({ leaf: 0, bud: 0, flower: 0 }));
     let questionPool = [], solvedCount = 0, targetVal = 0, mushIndices = [];
+    
     function createPikminHtml(config, type) {
         let headHtml = type === 'leaf' ? '<div class="p-leaf"></div>' : type === 'bud' ? '<div class="p-bud"></div>' : '<div class="p-flower">🌸</div>';
         let lClass = config.isGhost ? "p-eye-socket eye-l ghost-eye-l" : "p-eye-socket eye-l";
         let rClass = config.isGhost ? "p-eye-socket eye-r ghost-eye-r" : "p-eye-socket eye-r";
         return `<div class="pikmin-art"><div class="p-stem"></div>${headHtml}<div class="p-body" style="background:var(${config.key})"><div class="${lClass}" style="background:${config.eye || 'white'}"><div class="p-pupil" style="background:${config.pupil || 'black'}"></div></div><div class="${rClass}" style="background:${config.eye || 'white'}"><div class="p-pupil" style="background:${config.pupil || 'black'}"></div></div></div></div>`;
     }
+    
     function updateInventoryDisplay() {
         ['leaf', 'bud', 'flower'].forEach(type => {
             const row = document.getElementById(`row-${type}`); row.innerHTML = '';
@@ -223,6 +251,7 @@
             });
         });
     }
+
     function handleReward() {
         let availableIndices = []; pikminConfig.forEach((_, i) => { if (inventory[i].flower < FLOWER_MAX) availableIndices.push(i); });
         if (availableIndices.length === 0) return;
@@ -235,6 +264,7 @@
         localStorage.setItem('pikmin_inventory_final', JSON.stringify(inventory));
         updateInventoryDisplay();
     }
+
     function nextQuestion() {
         if (document.activeElement) document.activeElement.blur();
         if (solvedCount >= 10) { handleReward(); document.getElementById('finish-screen').style.display = 'flex'; return; }
@@ -266,7 +296,7 @@
         if (mode === "mixed") {
             let all = []; for (let b = 2; b <= 9; b++) for (let n = 1; n <= 9; n++) all.push({ b, n });
             questionPool = all.sort(() => Math.random() - 0.5).slice(0, 10);
-        } else { let b = parseInt(mode); questionPool = [1,2,3,4,5,6,7,8,9,5].sort(() => Math.random() - 0.5).map(n => ({ b, n })); }
+        } else { let b = parseInt(mode); questionPool = [1,2,3,4,5,6,7,8,9,1].sort(() => Math.random() - 0.5).map(n => ({ b, n })); }
         document.getElementById('finish-screen').style.display = 'none'; updateUI(); updateInventoryDisplay(); nextQuestion();
     }
     updateInventoryDisplay(); restartGame();
