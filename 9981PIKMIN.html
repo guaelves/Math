@@ -113,11 +113,11 @@
         #progress-bar { width: 0%; height: 100%; background: #4caf50; transition: 0.4s; }
         .math { font-size: clamp(40px, 10vh, 80px); font-weight: bold; color: #33691e; z-index: 10; }
         
-        /* --- 修正後的按鈕選取與回饋樣式 --- */
+        /* 按鈕基礎樣式 */
         .choice-row { flex: 1.2; display: flex; justify-content: space-around; gap: 8px; }
         .pikmin-btn { 
             background: #fff; 
-            border: 3px solid #eee; /* 預設邊框 */
+            border: 3px solid #eee; 
             border-radius: 20px; 
             cursor: pointer; 
             flex: 1; 
@@ -127,10 +127,10 @@
             justify-content: center; 
             outline: none; 
             -webkit-tap-highlight-color: transparent;
-            transition: all 0.15s ease-in-out; /* 增加平滑過渡 */
+            transition: all 0.15s ease-in-out;
         }
         
-        /* 滑鼠懸停與獲得焦點（鍵盤/點擊）時顯示綠色框線 */
+        /* 懸停與獲得焦點時顯示綠色框線 */
         .pikmin-btn:hover, .pikmin-btn:focus { 
             border: 3px solid #8bc34a; 
             background: #f1f8e9; 
@@ -266,7 +266,9 @@
     }
 
     function nextQuestion() {
+        // 切換題目時先清除畫面上任何可能殘留的焦點
         if (document.activeElement) document.activeElement.blur();
+        
         if (solvedCount >= 10) { handleReward(); document.getElementById('finish-screen').style.display = 'flex'; return; }
         const q = questionPool[solvedCount]; targetVal = q.b * q.n;
         document.getElementById('quest').innerText = `${q.b} x ${q.n}`;
@@ -283,6 +285,8 @@
             const randPikmin = pikminConfig[Math.floor(Math.random() * 9)];
             btn.innerHTML = `${createPikminHtml(randPikmin, types[i])}<div class="num">${v}</div>`;
             btn.onclick = () => {
+                // 點擊瞬間主動失去焦點，確保綠色框線消失
+                btn.blur();
                 if(v === targetVal) { playSound('correct'); solvedCount++; updateUI(); host.style.transform = "scale(0)"; host.style.opacity = "0"; setTimeout(nextQuestion, 700); } 
                 else { playSound('wrong'); document.getElementById('msg').innerText = "❌ 再算一下！"; }
             };
