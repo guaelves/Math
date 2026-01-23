@@ -132,8 +132,8 @@
             transition: all 0.15s ease-in-out;
         }
         
-        /* 懸停與獲得焦點時顯示綠色框線 */
-        .pikmin-btn:hover, .pikmin-btn:focus { 
+        /* 獲得焦點時顯示綠色框線 */
+        .pikmin-btn:focus-visible, .pikmin-btn:hover { 
             border: 3px solid #8bc34a; 
             background: #f1f8e9; 
         }
@@ -268,7 +268,7 @@
     }
 
     function nextQuestion() {
-        // 切換題目時先清除畫面上任何可能殘留的焦點
+        // --- 修改點 1: 切換題目時先清除畫面上目前的焦點 ---
         if (document.activeElement) document.activeElement.blur();
         
         if (solvedCount >= 10) { handleReward(); document.getElementById('finish-screen').style.display = 'flex'; return; }
@@ -287,7 +287,7 @@
             const randPikmin = pikminConfig[Math.floor(Math.random() * 9)];
             btn.innerHTML = `${createPikminHtml(randPikmin, types[i])}<div class="num">${v}</div>`;
             btn.onclick = () => {
-                // 點擊瞬間主動失去焦點，確保綠色框線消失
+                // --- 修改點 2: 點擊瞬間主動失去焦點，確保樣式回歸 ---
                 btn.blur();
                 if(v === targetVal) { playSound('correct'); solvedCount++; updateUI(); host.style.transform = "scale(0)"; host.style.opacity = "0"; setTimeout(nextQuestion, 700); } 
                 else { playSound('wrong'); document.getElementById('msg').innerText = "❌ 再算一下！"; }
