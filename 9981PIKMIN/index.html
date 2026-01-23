@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>皮克敏乘法冒險</title>
     
 <link rel="apple-touch-icon" href="pikminicon.png">
@@ -25,6 +25,7 @@
             font-family: "Arial", "Microsoft JhengHei", sans-serif; 
             background-color: #f1f8e9; display: flex; justify-content: center; align-items: center; 
             height: 100vh; margin: 0; overflow: hidden;
+            touch-action: manipulation; /* 減少行動裝置點擊延遲 */
         }
 
         #game-box { 
@@ -115,7 +116,7 @@
         #progress-bar { width: 0%; height: 100%; background: #4caf50; transition: 0.4s; }
         .math { font-size: clamp(40px, 10vh, 80px); font-weight: bold; color: #33691e; z-index: 10; }
         
-        /* 按鈕基礎樣式 */
+        /* 按鈕基礎樣式 - 移除所有預設的高亮與焦點效果 */
         .choice-row { flex: 1.2; display: flex; justify-content: space-around; gap: 8px; }
         .pikmin-btn { 
             background: #fff; 
@@ -127,22 +128,25 @@
             flex-direction: column; 
             align-items: center; 
             justify-content: center; 
-            outline: none; 
+            outline: none !important; 
             -webkit-tap-highlight-color: transparent;
-            transition: all 0.15s ease-in-out;
+            transition: transform 0.1s, background 0.1s, border-color 0.1s;
         }
         
-        /* 獲得焦點時顯示綠色框線 */
-        .pikmin-btn:focus-visible, .pikmin-btn:hover { 
-            border: 3px solid #8bc34a; 
-            background: #f1f8e9; 
-        }
+        /* 移除 iOS / Mobile 點選後的藍色透明層 */
+        button { -webkit-tap-highlight-color: transparent; }
 
-        /* 點擊按下的瞬間回饋 */
+        /* 只有在按下 (Active) 的瞬間變色 */
         .pikmin-btn:active {
             transform: scale(0.92);
-            border: 3px solid #4caf50;
-            background: #e8f5e9;
+            border: 3px solid #4caf50 !important;
+            background: #e8f5e9 !important;
+        }
+
+        /* 透過 JavaScript 控制的正確回饋類別 (選用) */
+        .pikmin-btn.correct-flash {
+            border: 3px solid #8bc34a !important;
+            background: #f1f8e9 !important;
         }
 
         .pikmin-art { width: 35px; height: 50px; position: relative; }
@@ -268,9 +272,6 @@
     }
 
     function nextQuestion() {
-        // --- 修改點 1: 切換題目時先清除畫面上目前的焦點 ---
-        if (document.activeElement) document.activeElement.blur();
-        
         if (solvedCount >= 10) { handleReward(); document.getElementById('finish-screen').style.display = 'flex'; return; }
         const q = questionPool[solvedCount]; targetVal = q.b * q.n;
         document.getElementById('quest').innerText = `${q.b} x ${q.n}`;
@@ -286,11 +287,22 @@
             const btn = document.createElement('button'); btn.className = 'pikmin-btn';
             const randPikmin = pikminConfig[Math.floor(Math.random() * 9)];
             btn.innerHTML = `${createPikminHtml(randPikmin, types[i])}<div class="num">${v}</div>`;
+            
+            // 點擊事件
             btn.onclick = () => {
-                // --- 修改點 2: 點擊瞬間主動失去焦點，確保樣式回歸 ---
-                btn.blur();
-                if(v === targetVal) { playSound('correct'); solvedCount++; updateUI(); host.style.transform = "scale(0)"; host.style.opacity = "0"; setTimeout(nextQuestion, 700); } 
-                else { playSound('wrong'); document.getElementById('msg').innerText = "❌ 再算一下！"; }
+                if(v === targetVal) { 
+                    playSound('correct'); 
+                    btn.classList.add('correct-flash'); // 加入一個短暫的正確閃爍類別
+                    solvedCount++; 
+                    updateUI(); 
+                    host.style.transform = "scale(0)"; 
+                    host.style.opacity = "0"; 
+                    setTimeout(nextQuestion, 700); 
+                } 
+                else { 
+                    playSound('wrong'); 
+                    document.getElementById('msg').innerText = "❌ 再算一下！"; 
+                }
             };
             choicesDiv.appendChild(btn);
         });
